@@ -1,5 +1,5 @@
-# Build outputs
-Locero-Windows-Helper.exe
+# Distribution/build outputs
+dist/
 windows-installer/installer/payload/LoceroNativeHelper.exe
 *.xpi
 *.zip

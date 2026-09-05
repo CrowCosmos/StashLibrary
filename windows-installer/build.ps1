@@ -1,9 +1,11 @@
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Repo = Split-Path -Parent $Root
+$Dist = Join-Path $Repo 'dist'
 $Installer = Join-Path $Root 'installer'
 $Payload = Join-Path $Installer 'payload'
 $Patcher = Join-Path $Root 'manifestpatch'
+New-Item -ItemType Directory -Force -Path $Dist | Out-Null
 New-Item -ItemType Directory -Force -Path $Payload | Out-Null
 
 Push-Location (Join-Path $Root 'launcher')
@@ -20,14 +22,14 @@ Pop-Location
 Copy-Item (Join-Path $Repo 'native\host.py') (Join-Path $Payload 'host.py') -Force
 
 Push-Location $Installer
-go build -trimpath -ldflags '-s -w -H=windowsgui' -o (Join-Path $Repo 'Locero-Windows-Helper.exe') .
+go build -trimpath -ldflags '-s -w -H=windowsgui' -o (Join-Path $Dist 'Locero-Windows-Helper.exe') .
 Pop-Location
 
 # requestedExecutionLevel=asInvoker disables legacy installer-detection
 # heuristics and the compatibility metadata prevents Program Compatibility
 # Assistant from treating Locero as an old/unknown installer.
 Push-Location $Patcher
-go run . (Join-Path $Repo 'Locero-Windows-Helper.exe') (Join-Path $Root 'installer.manifest')
+go run . (Join-Path $Dist 'Locero-Windows-Helper.exe') (Join-Path $Root 'installer.manifest')
 Pop-Location
 
-Write-Host 'Built Locero-Windows-Helper.exe with embedded Windows manifests' -ForegroundColor Green
+Write-Host 'Built dist\Locero-Windows-Helper.exe with embedded Windows manifests' -ForegroundColor Green
