@@ -91,6 +91,28 @@ def read_config():
     except:return {}
 def write_config(c):CONFIG.write_text(json.dumps(c,indent=2),encoding='utf-8')
 
+def default_library_path():
+    """Return the drive-root Locero folder for the current Windows user."""
+    home_drive=Path.home().drive
+    system_drive=Path(os.environ.get('SystemDrive','')).drive
+    drive=home_drive or system_drive
+    return Path(drive+'\\')/'Locero' if drive else Path.home()/'Locero'
+
+def ensure_default_library():
+    """Create and configure the default library for a fresh installation."""
+    c=read_config()
+    if str(c.get('bookmarks_path') or '').strip():return
+    target=default_library_path()
+    target.mkdir(parents=True,exist_ok=True)
+    c['bookmarks_path']=str(target)
+    c['cloud_sync_path']=str(target)
+    c['storage_sync_mode']='local'
+    c['internal_data_layout']='library-local-v3'
+    c['internal_data_path']=str(target/UNIFIED_DATA_DIR_NAME)
+    c['storage_root_layout']='self-contained-v1'
+    c['folder_config_version']=7
+    write_config(c)
+
 def bookmarks_path():
     p=read_config().get('bookmarks_path')
     return Path(p) if p else None
@@ -817,7 +839,11 @@ def migrate_v165_storage_mode():
 
 migrate_v165_storage_mode()
 
-# v0.10.171: the selected Locero folder is a complete local library.
+# Fresh installs use Locero at the root of the current user's drive. Existing
+# configured libraries are deliberately preserved during upgrades.
+ensure_default_library()
+
+# v0.10.171: the Locero folder is a complete local library.
 migrate_internal_data_to_library()
 
 def _load_history():

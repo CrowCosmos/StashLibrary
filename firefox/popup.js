@@ -3872,24 +3872,6 @@ document.querySelector('#webdavMoreMenu')?.addEventListener('keydown',e=>{
 });
 
 
-async function chooseStorageFolder(mode){
-  try{
-    beginOperation(mode==='synced'?'Choosing synced Locero folder':'Choosing local Locero folder','waiting for folder picker');
-    const r=await send({cmd:'choose_storage_folder',mode});
-    if(!r?.ok){finishOperation(r?.error||'Folder unchanged');await refreshSettingsInfo();return false;}
-    await refreshTree('change');await refreshSettingsInfo();
-    finishOperation(`Locero folder — ${r.path}`);
-    return true;
-  }catch(e){errorStatus(e);await refreshSettingsInfo();return false;}
-}
-document.querySelector('#settingsSelectLocalFolder')?.addEventListener('click',async()=>{
-  try{
-    beginOperation('Choosing Locero Folder','waiting for folder picker');
-    const r=await send({cmd:'choose_storage_folder',mode:'local'});
-    if(!r?.ok){finishOperation(r?.error||'Folder unchanged');return;}
-    await refreshTree('change');await refreshSettingsInfo();finishOperation(`Locero folder — ${r.path}`);
-  }catch(e){errorStatus(e);await refreshSettingsInfo();}
-});
 document.querySelector('#settingsOpenLocalFolder')?.addEventListener('click',async()=>{
   try{const r=await send({cmd:'open_bookmarks'});if(!r?.ok)throw new Error(r?.error||'Could not open Locero folder.');status('Opened Locero folder');}catch(e){errorStatus(e)}
 });

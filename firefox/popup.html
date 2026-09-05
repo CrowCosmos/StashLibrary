@@ -5,7 +5,7 @@
 <div id="root" class="root"></div>
 <div id="welcome" class="welcome" hidden>
   <h2>Welcome to Locero</h2>
-  <p>Start by opening <strong>⚙ Settings</strong>. Choose where Locero should keep your local library, then optionally set up Cloud Backup.</p>
+  <p>Locero automatically keeps your local library in the <strong>Locero</strong> folder on your Windows drive. Open <strong>⚙ Settings</strong> to view it, then optionally set up Cloud Backup.</p>
   <p><strong>Save a page or PDF locally:</strong> right-click in the bookmark area and choose <em>Add Bookmark</em>. Locero stores the original URL and the time you saved it, so that date can later become Zotero's <strong>Accessed</strong> date.</p>
   <p><strong>Send something straight to Zotero:</strong> click <em>Send to Zotero</em>. Pick a Zotero folder, then click Save. Nothing is sent before you confirm.</p>
   <p><strong>Useful extras:</strong> Ctrl+click selects several bookmarks at once; Ctrl+Z / Ctrl+Y undo and redo; you can migrate selected Zotero folders into Locero, send archived items back to Zotero, drag/reorder items, and keep an optional WebDAV cloud backup.</p>
@@ -41,11 +41,10 @@
 
     <div class="settings-section" id="localStorageSection">
       <div class="section-title">Local Storage</div>
-      <div class="settings-note storage-intro">Where is your local Locero folder located?</div>
+      <div class="settings-note storage-intro">Locero automatically stores your local library here:</div>
       <div id="settingsLocalStoragePath" class="settings-info storage-path">Loading folder…</div>
-      <div class="settings-actions two-equal-actions local-storage-actions">
-        <button id="settingsSelectLocalFolder" type="button">Select Folder…</button>
-        <button id="settingsOpenLocalFolder" type="button">Open Folder</button>
+      <div class="settings-actions local-storage-actions">
+        <button id="settingsOpenLocalFolder" class="wide-btn" type="button">Open Folder</button>
       </div>
     </div>
 
