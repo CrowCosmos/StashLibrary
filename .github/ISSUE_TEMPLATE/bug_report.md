@@ -1,36 +1,38 @@
 ---
 name: Bug report
-about: 'Create a report to help improve ZotStash '
-title: ''
-labels: ''
-assignees: CrowCosmos
-
+about: Report a problem with Locero
+title: ""
+labels: bug
+assignees: "CrowCosmos"
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Describe the bug
 
-**To Reproduce**
-Steps to reproduce the behaviour:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Briefly describe what went wrong.
 
-**Expected behaviour**
-A clear and concise description of what you expected to happen.
+## Steps to reproduce
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+1. 
+2. 
+3. 
 
-**Desktop (please complete the following information):**
+## Expected behaviour
 
-- Firefox Version
+What did you expect to happen instead?
 
-- Version of each of the 3 components: 
-1. Firefox Extension
-2. ZotStash Helper
-3. Zotero Helper
+## Screenshots or error messages
 
-**Additional context**
-Add any other context about the problem here.
+If applicable, add screenshots or copy any error messages shown by Locero.
+
+## Environment
+
+- **Windows version:**
+- **Firefox version:**
+- **Firefox extension version:**
+- **Locero Windows Helper version:**
+- **Zotero version (if relevant):**
+- **Zotero Helper version (if relevant):**
+
+## Additional context
+
+Add anything else that might help reproduce or understand the problem.
