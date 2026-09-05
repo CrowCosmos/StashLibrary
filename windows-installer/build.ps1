@@ -1,0 +1,33 @@
+$ErrorActionPreference = 'Stop'
+$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Repo = Split-Path -Parent $Root
+$Installer = Join-Path $Root 'installer'
+$Payload = Join-Path $Installer 'payload'
+$Patcher = Join-Path $Root 'manifestpatch'
+New-Item -ItemType Directory -Force -Path $Payload | Out-Null
+
+Push-Location (Join-Path $Root 'launcher')
+$env:GOOS='windows'; $env:GOARCH='amd64'; $env:CGO_ENABLED='0'
+go build -trimpath -ldflags '-s -w -H=windowsgui' -o (Join-Path $Payload 'LoceroNativeHelper.exe') .
+Pop-Location
+
+# Embed an explicit Windows application manifest so Windows knows that the
+# native helper is a normal Windows 10/11 application and must run as the user.
+Push-Location $Patcher
+go run . (Join-Path $Payload 'LoceroNativeHelper.exe') (Join-Path $Root 'launcher.manifest')
+Pop-Location
+
+Copy-Item (Join-Path $Repo 'native\host.py') (Join-Path $Payload 'host.py') -Force
+
+Push-Location $Installer
+go build -trimpath -ldflags '-s -w -H=windowsgui' -o (Join-Path $Repo 'Locero-Windows-Helper.exe') .
+Pop-Location
+
+# requestedExecutionLevel=asInvoker disables legacy installer-detection
+# heuristics and the compatibility metadata prevents Program Compatibility
+# Assistant from treating Locero as an old/unknown installer.
+Push-Location $Patcher
+go run . (Join-Path $Repo 'Locero-Windows-Helper.exe') (Join-Path $Root 'installer.manifest')
+Pop-Location
+
+Write-Host 'Built Locero-Windows-Helper.exe with embedded Windows manifests' -ForegroundColor Green

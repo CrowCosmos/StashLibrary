@@ -1,0 +1,16 @@
+{
+  "version": "0.1.0",
+  "component_version": "0.1.0",
+  "firefox_version": "0.1.0",
+  "zotero_version": "0.1.0",
+  "windows_helper_version": "0.1.0",
+  "release_url": "https://github.com/CrowCosmos/Locero/releases/tag/v0.1.0",
+  "latest_release_url": "https://github.com/CrowCosmos/Locero/releases/latest",
+  "windows_setup": "Locero-Windows-Helper.exe",
+  "windows_setup_url": "https://github.com/CrowCosmos/Locero/releases/latest/download/Locero-Windows-Helper.exe",
+  "firefox": "locero-firefox.xpi",
+  "zotero": "Locero-Zotero-Helper.xpi",
+  "protocol": 1,
+  "policy": "semantic-version",
+  "firefox_asset_policy": "stable-filename; unsigned accepted only where Firefox permits it; use Mozilla-signed XPI for normal Firefox releases"
+}

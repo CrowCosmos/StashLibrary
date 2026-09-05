@@ -1,0 +1,18 @@
+{
+  "addons": {
+    "local-file-connector-helper-v088@chatgpt.local": {
+      "updates": [
+        {
+          "version": "0.1.0",
+          "update_link": "https://github.com/CrowCosmos/Locero/releases/download/v0.1.0/Locero-Zotero-Helper.xpi",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "9.0",
+              "strict_max_version": "9.0.*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

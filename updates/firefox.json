@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "locero@locero.app": {
+      "updates": [
+        {
+          "version": "0.1.0",
+          "update_link": "https://github.com/CrowCosmos/Locero/releases/download/v0.1.0/locero-firefox.xpi"
+        }
+      ]
+    }
+  }
+}

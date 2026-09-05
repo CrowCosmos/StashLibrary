@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Locero Zotero Helper",
+  "version": "0.1.0",
+  "description": "Zotero companion for Locero.",
+  "author": "Locero",
+  "applications": {
+    "zotero": {
+      "id": "local-file-connector-helper-v088@chatgpt.local",
+      "strict_min_version": "9.0",
+      "strict_max_version": "9.0.*",
+      "update_url": "https://crowcosmos.github.io/Locero/updates/zotero.json"
+    }
+  }
+}

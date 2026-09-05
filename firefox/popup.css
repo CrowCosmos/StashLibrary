@@ -1,0 +1,2795 @@
+:root{color-scheme:dark;--bg:#1c1b22;--fg:#fbfbfe;--panel:#2b2a33;--panel-fg:#fbfbfe;--hover:#42414d;--border:#5b5b66;--status:#23222b;--shadow:0 4px 14px rgba(0,0,0,.30);--folder:#a7a7ad;--accent:#4a4a52;--accentText:#fbfbfe}
+:root[data-theme=system],:root[data-theme=dark]{color-scheme:dark;--bg:#1c1b22;--fg:#fbfbfe;--panel:#2b2a33;--panel-fg:#fbfbfe;--hover:#42414d;--border:#5b5b66;--status:#23222b;--folder:#a7a7ad;--accent:#4a4a52;--accentText:#fbfbfe}:root[data-theme=light]{color-scheme:light;--bg:#f9f9fb;--fg:#15141a;--panel:#fff;--panel-fg:#15141a;--hover:#ececef;--border:#c7c7cc;--status:#f0f0f4;--folder:#77777f;--accent:#d6d6da;--accentText:#15141a}
+*{box-sizing:border-box}html,body{margin:0;width:640px;height:520px;overflow:hidden;background:var(--bg);color:var(--fg);font:13px system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select{font:inherit}
+#status{position:fixed;top:0;left:24px;right:0;height:18px;padding:1px 365px 1px 6px;background:var(--status);border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:1000;font-size:11px}
+#setupBtn{position:fixed;left:0;top:0;width:24px;height:18px;padding:0;border:0;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--status);color:inherit;display:grid;place-items:center;cursor:pointer;z-index:1201;font:11px/1 "Segoe UI Emoji","Segoe UI Symbol",sans-serif}
+#setupBtn:hover,#setupBtn:focus-visible,#setupBtn.keyboard-current{background:var(--hover);outline:1px solid currentColor;outline-offset:-2px}
+#topActions{position:fixed;right:2px;top:0;height:18px;display:flex;z-index:1201}#topActions button{width:28px;height:18px;border:0;background:transparent;color:inherit;cursor:pointer;display:grid;place-items:center;padding:0;line-height:1}#topActions button:hover:not(:disabled){background:var(--hover)}#topActions button:disabled{opacity:.35;cursor:default}.gear{font-size:14px;line-height:1}
+.root{position:absolute;top:22px;right:6px;width:210px;bottom:22px;overflow-y:auto;overflow-x:hidden;padding:2px}
+.item{height:28px;display:flex;align-items:center;gap:7px;padding:0 7px;border:1px solid transparent;border-radius:3px;cursor:default;user-select:none;white-space:nowrap}.item.bookmark{cursor:pointer}.item:hover,.item.active{background:var(--hover)}.item .label{overflow:hidden;text-overflow:ellipsis;flex:1}.item.folder .arrow{font-size:10px;opacity:.8}
+.folder-icon{width:16px;height:16px;flex:0 0 16px;color:currentColor;opacity:.8;background:currentColor;-webkit-mask:url("icons/firefox-folder.svg") center/16px 16px no-repeat;mask:url("icons/firefox-folder.svg") center/16px 16px no-repeat}
+.flyout{position:fixed;width:210px;max-height:calc(100vh - 44px);overflow-y:auto;overflow-x:hidden;padding:3px;background:var(--panel);color:var(--panel-fg);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow);z-index:500}.flyout[hidden]{display:none}
+.flyout-open-all{width:100%;height:27px;margin-top:3px;border:0;border-top:1px solid var(--border);border-radius:0 0 3px 3px;background:transparent;color:inherit;text-align:center;font:inherit;cursor:pointer}
+.flyout-open-all:hover,.flyout-open-all:focus-visible,.flyout-open-all.keyboard-current{background:var(--hover);outline:1px solid currentColor;outline-offset:-2px}
+.ctx{position:fixed;min-width:165px;padding:4px;background:var(--panel);color:var(--panel-fg);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow);z-index:2000}.ctx button{width:100%;display:block;text-align:left;border:0;border-radius:3px;background:transparent;color:inherit;padding:6px 9px}.ctx button:hover,.ctx button.keyboard-current,.ctx button:focus-visible{background:var(--hover);outline:1px solid currentColor;outline-offset:-2px}.ctx-separator{height:1px;background:var(--border);opacity:.65;margin:4px 5px}
+.empty{height:28px;display:flex;align-items:center;padding:0 7px;opacity:.65;border:1px solid transparent;border-radius:3px}.ctx button:disabled{opacity:.4;cursor:default}.ctx button:disabled:hover{background:transparent}
+.item.dragging{opacity:.45}.item.drop-before{border-top:2px solid currentColor;border-top-left-radius:0;border-top-right-radius:0}.item.drop-after{border-bottom:2px solid currentColor;border-bottom-left-radius:0;border-bottom-right-radius:0}.item.drop-inside{outline:2px solid currentColor;outline-offset:-2px;background:var(--hover)}.root.drop-folder-end,.flyout.drop-folder-end{outline:none}
+#status.busy::before{content:'';display:inline-block;width:8px;height:8px;margin:0 6px 0 0;vertical-align:-1px;border:1.5px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .75s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+#undoBtn,#redoBtn{font-size:15px;font-family:"Segoe UI Symbol","Noto Sans Symbols",sans-serif}
+#settingsBtn.attention{background:var(--hover);outline:1px solid var(--border);outline-offset:-1px;animation:settingsPulse 1.6s ease-in-out infinite}@keyframes settingsPulse{50%{filter:brightness(1.35)}}
+.welcome{position:absolute;left:18px;top:42px;width:390px;padding:16px 18px;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);font-size:11.5px;line-height:1.45}.welcome[hidden]{display:none}.welcome h2{font-size:15px;margin:0 0 10px}.welcome p{margin:8px 0}.welcome button{margin-top:5px;border:1px solid var(--border);background:var(--hover);color:inherit;border-radius:4px;padding:6px 11px;cursor:pointer}.undo-label{margin-top:9px}
+
+/* Self-contained settings card; no separate Firefox options tab. */
+.settings-panel{position:fixed;top:28px;right:12px;width:360px;max-height:480px;background:var(--panel);color:var(--panel-fg);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.32);z-index:1200;overflow:hidden}.settings-panel[hidden]{display:none}
+.settings-header{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 11px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--panel) 94%,var(--fg) 6%)}.settings-title{display:flex;gap:8px;align-items:center;font-weight:600;font-size:12px}.icon-btn{border:0;background:transparent;color:inherit;width:28px;height:28px;border-radius:4px;font-size:22px;line-height:1;cursor:pointer}.icon-btn:hover{background:var(--hover)}
+.settings-scroll{max-height:443px;overflow:auto;padding:2px 11px 12px}.settings-section{padding:10px 0;border-top:1px solid var(--border)}.settings-section:first-child{border-top:0}.section-title{font-weight:600;margin:0 0 7px;font-size:12px}.field-label{display:block;margin:0 0 4px;opacity:.85;font-size:11px}.settings-info{white-space:pre-line;word-break:break-all;font-size:10.5px;line-height:1.35;padding:5px 6px;border-radius:4px;background:color-mix(in srgb,var(--panel-fg) 7%,var(--panel));margin-bottom:6px}.settings-info.compact{margin-top:9px;margin-bottom:6px}.settings-note{font-size:10px;opacity:.72;line-height:1.35;margin-top:6px}.settings-note code{font-family:ui-monospace,Consolas,monospace}
+.settings-actions{display:flex;gap:5px;flex-wrap:wrap}.settings-actions:not(.vertical)>button{flex:1 1 0;min-width:0;text-align:center}.settings-actions.vertical{display:grid;grid-template-columns:1fr}.settings-actions.vertical button:first-child{grid-column:auto}.settings-panel button,.settings-panel select{border:1px solid var(--border);background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));color:inherit;border-radius:3px;padding:4px 7px;cursor:pointer;font-size:11px}.settings-panel button:hover{background:var(--hover)}.settings-panel select{width:100%;padding:5px 6px;font-size:11px}.wide-btn{width:100%;margin-top:5px}.segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:0}.segmented button{border-radius:0;margin-left:-1px}.segmented button:first-child{border-radius:4px 0 0 4px;margin-left:0}.segmented button:last-child{border-radius:0 4px 4px 0}.segmented button.selected{background:var(--accent);color:var(--accentText);border-color:var(--border);position:relative;z-index:1}
+
+.folder-actions{margin-bottom:8px}.settings-actions button{min-height:26px}
+
+.zotero-picker{margin-top:7px;max-height:210px;overflow:auto;border:1px solid var(--border);border-radius:4px;padding:5px;background:color-mix(in srgb,var(--panel-fg) 3%,var(--panel))}.zotero-picker[hidden]{display:none}.zotero-node{margin:1px 0}.zotero-row{display:flex;align-items:center;gap:4px;min-height:22px;padding:1px 3px;border-radius:3px}.zotero-row:hover{background:var(--hover)}.zotero-row input{margin:0}.zotero-row label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:pointer}.zotero-children{margin-left:17px}.zotero-file label{opacity:.9}.zotero-count{opacity:.6;font-size:9px;margin-left:auto}.zotero-actions button{flex:1 1 auto}.zotero-picker .empty-zotero{padding:5px;opacity:.7;font-size:10px}
+
+#backupLimit{margin-bottom:3px}
+
+#topActions .open-downloads{width:auto;min-width:76px;padding:0 7px;font-size:10px;border-left:1px solid var(--border);white-space:nowrap;display:flex!important;align-items:center;justify-content:center;flex-wrap:nowrap}
+#topActions .save-current-locero{width:auto;min-width:96px;padding:0 8px;font-size:10px;white-space:nowrap;background:#0b4f8a;color:#fff;border-left:1px solid color-mix(in srgb,#fff 18%,#0b4f8a);border-right:1px solid color-mix(in srgb,#000 20%,#0b4f8a)}
+#topActions .save-current-locero:hover:not(:disabled){background:#1264a3}
+#topActions .send-current-zotero{width:auto;min-width:92px;padding:0 8px;font-size:10px;white-space:nowrap;background:#b3261e;color:#fff;border-left:1px solid color-mix(in srgb,#fff 18%,#b3261e);border-right:1px solid color-mix(in srgb,#000 25%,#b3261e)}
+#topActions .send-current-zotero:hover:not(:disabled){background:#c7352c}
+#topActions .send-current-zotero[hidden]{display:none!important}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;padding:4px 0}.toggle-row input{width:16px;height:16px;margin:0;accent-color:#b3261e}
+#zoteroMigrationSection[hidden]{display:none!important}
+
+.zdest-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:4000;display:grid;place-items:center}.zdest-overlay[hidden]{display:none}.zdest-dialog{width:430px;max-height:470px;background:var(--panel);color:var(--panel-fg);border:1px solid var(--border);border-radius:7px;box-shadow:0 12px 34px rgba(0,0,0,.45);display:flex;flex-direction:column}.zdest-header{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px;border-bottom:1px solid var(--border)}.zdest-x{border:0;background:transparent;color:inherit;font-size:22px}.zdest-status{font-size:11px;padding:7px 10px 3px;opacity:.8}.zdest-actions{display:flex;gap:6px;padding:4px 10px}.zdest-actions button,.zdest-buttons button{border:1px solid var(--border);background:var(--panel);color:inherit;border-radius:3px;padding:4px 9px}.zdest-tree{margin:2px 10px;min-height:160px;max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:4px;padding:4px}.zdest-row{height:25px;display:flex;align-items:center;gap:5px;padding:0 5px;border-radius:3px;white-space:nowrap;cursor:default}.zdest-row:hover{background:var(--hover)}.zdest-row.selected{background:var(--hover);outline:1px solid var(--border)}.zdest-toggle{width:16px;text-align:center;cursor:pointer}.zdest-icon{width:16px;opacity:.8}.zdest-name{overflow:hidden;text-overflow:ellipsis}.zdest-row.hiddenByParent{display:none}.zdest-selected{padding:6px 10px;font-size:11px}.zdest-buttons{display:flex;justify-content:flex-end;gap:7px;padding:8px 10px;border-top:1px solid var(--border)}.zdest-buttons #zdestSave{min-width:72px}.zdest-buttons #zdestSave:not(:disabled){font-weight:600}
+
+
+/* Locero v0.3.0 polish + multi-select */
+.item.selected{background:color-mix(in srgb,var(--accent) 24%,var(--panel));outline:1px solid color-mix(in srgb,var(--accent) 70%,var(--border));outline-offset:-1px}
+.item.selected.active{background:color-mix(in srgb,var(--accent) 30%,var(--panel))}
+.selection-hint{position:fixed;left:9px;bottom:3px;z-index:650;font-size:9px;opacity:.66;pointer-events:none;background:var(--panel);padding:2px 5px;border-radius:3px;border:1px solid color-mix(in srgb,var(--border) 65%,transparent)}
+.selection-hint[hidden]{display:none}
+.ctx .batch-label{font-weight:600}
+#topActions button{transition:background .12s ease,filter .12s ease}
+#undoBtn,#redoBtn{font-size:16px;line-height:1;font-weight:400;opacity:.92}
+#status.busy::before{width:9px;height:9px;border-width:1.6px;margin-right:6px}
+.welcome{width:400px;padding:17px 19px;border-radius:9px}.welcome h2{font-size:16px;letter-spacing:.1px}.welcome p{font-size:11.5px}
+
+/* Dedicated Zotero migration picker */
+.zmig-dialog{width:470px;max-height:500px}
+.zmig-actions{justify-content:flex-start}
+.zmig-actions button{min-width:92px}
+.zmig-picker{margin:2px 10px 8px;min-height:210px;max-height:335px;padding:6px}
+.zmig-dialog .zotero-row{min-height:24px}
+.zmig-dialog .zdest-buttons #zoteroMigrate{min-width:150px}
+
+.zmig-destination-row{display:flex;align-items:center;gap:8px;padding:0 10px 8px}.zmig-destination-row label{white-space:nowrap}.zmig-destination-row select{flex:1;min-width:0;padding:5px 7px;background:var(--panel,#2b2b33);color:inherit;border:1px solid var(--border,#666);border-radius:4px}
+
+/* v0.4.13 migration trees */
+.zotero-toggle,.zmig-dest-toggle{width:18px;height:18px;min-width:18px;border:0;background:transparent;color:inherit;padding:0;display:grid;place-items:center;cursor:pointer;font-size:11px}
+.zotero-toggle:disabled,.zmig-dest-toggle:disabled{opacity:.25;cursor:default}.zotero-toggle-spacer{width:18px;min-width:18px}
+.zotero-children[hidden]{display:none}.zotero-row{padding-left:1px}
+.zmig-destination-block{padding:0 10px 8px;position:relative}.zmig-destination-row{padding:0;display:flex;align-items:center;gap:8px}.zmig-destination-button{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 7px;background:var(--panel);color:inherit;border:1px solid var(--border);border-radius:4px}
+.zmig-destination-tree{position:absolute;left:88px;right:10px;top:29px;z-index:20;max-height:220px;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow);padding:4px}.zmig-destination-tree[hidden]{display:none}
+.zmig-dest-row{height:25px;display:flex;align-items:center;gap:5px;white-space:nowrap;border-radius:3px;cursor:default;padding-right:5px}.zmig-dest-row:hover,.zmig-dest-row.selected{background:var(--hover)}.zmig-dest-row.selected{outline:1px solid var(--border);outline-offset:-1px}.zmig-dest-icon{width:15px;height:15px;flex:0 0 15px}.zmig-dest-name{overflow:hidden;text-overflow:ellipsis}
+
+
+/* v0.4.14 migration-tree polish */
+.zmig-actions{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+}
+.zmig-actions button{min-width:0}
+
+.zotero-node{margin:1px 0}
+.zotero-children{
+  margin-left:18px;
+  border-left:1px solid color-mix(in srgb,var(--border) 45%,transparent);
+  padding-left:2px;
+}
+.zotero-children[hidden]{display:none}
+.zotero-row label{cursor:pointer}
+.zotero-unfiled > .zotero-row{font-weight:600}
+
+.zmig-destination-tree{
+  padding:0;
+  overflow:hidden;
+  max-height:280px;
+}
+.zmig-tree-toolbar{
+  position:sticky;
+  top:0;
+  z-index:3;
+  display:flex;
+  gap:5px;
+  padding:5px;
+  border-bottom:1px solid var(--border);
+  background:var(--panel);
+}
+.zmig-tree-toolbar button{flex:1;min-width:0}
+#zmigDestinationTreeBody{
+  max-height:235px;
+  overflow:auto;
+  padding:4px;
+}
+.zmig-dest-node{margin:1px 0}
+.zmig-dest-children{
+  margin-left:18px;
+  border-left:1px solid color-mix(in srgb,var(--border) 45%,transparent);
+  padding-left:2px;
+}
+.zmig-dest-children[hidden]{display:none}
+.zmig-dest-row{
+  display:flex;
+  align-items:center;
+  gap:3px;
+  min-height:24px;
+  padding:1px 4px;
+  border-radius:3px;
+}
+.zmig-dest-row:hover{background:var(--hover)}
+.zmig-dest-row.selected{
+  background:color-mix(in srgb,var(--accent,#4b8cff) 25%,var(--panel));
+}
+.zmig-dest-name{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.zmig-dest-icon{cursor:pointer}
+
+
+/* v0.4.15 migration picker refinements */
+.zmig-actions{
+  display:flex;
+  gap:5px;
+}
+.zmig-actions button{
+  flex:0 0 auto;
+  min-width:100px;
+}
+
+.zmig-source-block,
+.zmig-destination-block{
+  margin-top:7px;
+}
+
+.zmig-inline-tree-tools{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:2px 3px 4px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.zmig-tree-links{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+}
+
+button.zmig-text-action{
+  appearance:none;
+  border:0;
+  background:transparent;
+  padding:0;
+  margin:0;
+  min-width:0;
+  width:auto;
+  height:auto;
+  color:inherit;
+  font:inherit;
+  text-decoration:underline;
+  cursor:pointer;
+}
+button.zmig-text-action:hover{color:var(--text)}
+button.zmig-text-action:disabled{
+  opacity:.45;
+  cursor:default;
+}
+
+.zmig-destination-tree{
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  overflow:hidden;
+  height:235px;
+  max-height:235px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  background:var(--panel);
+}
+#zmigDestinationTreeBody{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none;
+  overflow:auto;
+  padding:4px;
+}
+
+.zmig-destination-confirm{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border-top:1px solid var(--border);
+  padding:5px 6px;
+  background:var(--panel);
+}
+#zmigDestinationPending{
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  color:var(--muted);
+}
+#zmigDestinationSelect{
+  flex:0 0 auto;
+  min-width:72px;
+}
+
+.zmig-dest-row.pending{
+  outline:1px solid color-mix(in srgb,var(--accent,#4b8cff) 65%,transparent);
+  outline-offset:-1px;
+}
+.zmig-dest-row.selected{
+  background:color-mix(in srgb,var(--accent,#4b8cff) 25%,var(--panel));
+}
+
+.zmig-picker{
+  min-height:190px;
+  max-height:280px;
+}
+
+.advanced-recovery{margin-top:7px;font-size:12px;color:var(--muted)}
+.advanced-recovery summary{cursor:pointer;user-select:none}
+.advanced-recovery .wide-btn{margin-top:6px}
+.recovery-warning{border:1px solid var(--border);padding:7px}
+
+
+/* v0.7.2 Zotero migration source-tree/modal fixes */
+.zmig-dialog{
+  width:min(560px,calc(100vw - 24px));
+  max-height:calc(100vh - 24px);
+  overflow:auto;
+  overscroll-behavior:contain;
+}
+
+.zmig-dialog .zdest-header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:var(--panel);
+}
+
+.zmig-dialog .zdest-buttons{
+  position:sticky;
+  bottom:0;
+  z-index:30;
+  background:var(--panel);
+}
+
+.zmig-source-block{
+  min-height:0;
+}
+
+.zmig-picker{
+  min-height:150px;
+  max-height:min(300px,36vh);
+  overflow:auto;
+}
+
+#zoteroPicker .zotero-node.collapsed > .zotero-children{
+  display:none !important;
+}
+
+#zoteroPicker .zotero-toggle{
+  line-height:1;
+  font-family:inherit;
+}
+
+#zoteroPicker .zotero-row{
+  min-width:0;
+}
+
+#zoteroPicker .zotero-row label{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+#zoteroPicker .zotero-count{
+  flex:0 0 auto;
+  padding-left:5px;
+}
+
+.zmig-inline-tree-tools{
+  padding-left:10px;
+  padding-right:10px;
+}
+
+.zmig-source-block .zmig-inline-tree-tools{
+  margin-top:2px;
+}
+
+.zmig-dialog .zdest-status{
+  white-space:normal;
+  line-height:1.35;
+}
+
+.zmig-dialog .zdest-actions{
+  flex-wrap:wrap;
+}
+\n/* v0.7.4 compact Zotero migration destination picker */\n.zmig-destination-picker{position:relative;padding:0 10px 8px}\n.zmig-destination-button{width:100%;display:block;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px;background:var(--panel);color:inherit;border:1px solid var(--border);border-radius:4px}\n.zmig-destination-tree{position:absolute !important;left:10px !important;right:10px !important;top:38px !important;z-index:60 !important;height:250px !important;max-height:250px !important;min-height:250px !important;display:flex;flex-direction:column;overflow:hidden !important;padding:0 !important;background:var(--panel);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow)}\n.zmig-destination-tree[hidden]{display:none !important}\n.zmig-destination-toolbar{flex:0 0 auto;display:flex;justify-content:flex-end;align-items:center;min-height:28px;padding:4px 8px;border-bottom:1px solid var(--border);background:var(--panel)}\n#zmigDestinationTreeBody{flex:1 1 auto !important;min-height:0 !important;height:auto !important;max-height:none !important;overflow:auto !important;padding:4px !important}\n.zmig-destination-confirm{flex:0 0 auto;min-height:34px;padding:5px 7px;border-top:1px solid var(--border);background:var(--panel)}\n
+
+/* v0.7.5 compact top-row destination picker */
+.zmig-top-actions{
+  display:grid !important;
+  grid-template-columns:100px 100px minmax(0,1fr);
+  gap:7px;
+  align-items:center;
+  padding:0 10px 8px;
+  position:relative;
+}
+.zmig-top-actions > button{
+  width:100%;
+  min-width:0;
+}
+.zmig-top-actions .zmig-destination-picker{
+  position:relative;
+  padding:0;
+  min-width:0;
+}
+.zmig-top-actions .zmig-destination-button{
+  min-height:34px;
+  padding:5px 8px;
+}
+.zmig-top-actions .zmig-destination-tree{
+  left:auto !important;
+  right:0 !important;
+  top:38px !important;
+  width:min(330px,calc(100vw - 50px)) !important;
+  height:205px !important;
+  min-height:205px !important;
+  max-height:205px !important;
+}
+.zmig-top-actions .zmig-destination-toolbar{
+  min-height:25px;
+  padding:3px 7px;
+}
+.zmig-top-actions #zmigDestinationTreeBody{
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:auto !important;
+}
+.zmig-top-actions .zmig-destination-confirm{
+  min-height:32px;
+  padding:4px 6px;
+}
+
+
+/* v0.7.6 destination popover: JS anchors it to the button in viewport space. */
+#zmigDestinationTree{
+  z-index:5000 !important;
+  overflow:hidden !important;
+  padding:0 !important;
+  box-shadow:var(--shadow) !important;
+}
+#zmigDestinationTree[hidden]{display:none !important}
+#zmigDestinationTree .zmig-destination-toolbar{height:28px;flex:0 0 28px}
+#zmigDestinationTree #zmigDestinationTreeBody{flex:1 1 auto;min-height:0;overflow:auto}
+#zmigDestinationTree .zmig-destination-confirm{height:36px;flex:0 0 36px}
+
+
+/* v0.7.7 migration layout hard reset */
+.zmig-dialog{overflow:visible !important}
+.zmig-top-actions{display:flex !important;flex-wrap:nowrap !important;align-items:center !important;gap:7px !important;padding:4px 10px 8px !important;position:relative !important}
+.zmig-top-actions>#zoteroSelectAll,.zmig-top-actions>#zoteroSelectNone{flex:0 0 100px !important;width:100px !important;min-width:100px !important}
+.zmig-top-actions>.zmig-destination-picker{flex:1 1 auto !important;min-width:0 !important;position:relative !important;padding:0 !important}
+.zmig-top-actions .zmig-destination-button{width:100% !important;min-width:0 !important;height:32px !important;padding:4px 8px !important}
+#zmigDestinationTree{position:absolute !important;top:36px !important;right:0 !important;left:auto !important;width:300px !important;height:180px !important;min-height:180px !important;max-height:180px !important;z-index:9999 !important;overflow:hidden !important;display:flex;flex-direction:column;background:var(--panel) !important;border:1px solid var(--border) !important;border-radius:5px !important;box-shadow:var(--shadow) !important;padding:0 !important}
+#zmigDestinationTree[hidden]{display:none !important}
+#zmigDestinationTree .zmig-destination-toolbar{flex:0 0 27px !important;height:27px !important;min-height:27px !important;padding:3px 7px !important}
+#zmigDestinationTreeBody{flex:1 1 auto !important;min-height:0 !important;overflow:auto !important;padding:4px !important}
+#zmigDestinationTree .zmig-destination-confirm{flex:0 0 34px !important;height:34px !important;min-height:34px !important;padding:4px 6px !important}
+.zmig-source-block{position:relative !important;z-index:1 !important}
+
+
+/* v0.7.8 destination tree: remove button-box artifacts */
+#zmigDestinationTree .zmig-dest-toggle{
+  appearance:none !important;
+  -moz-appearance:none !important;
+  flex:0 0 17px !important;
+  width:17px !important;
+  min-width:17px !important;
+  max-width:17px !important;
+  height:20px !important;
+  min-height:20px !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  outline:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:inherit !important;
+  line-height:20px !important;
+  text-align:center !important;
+}
+#zmigDestinationTree .zmig-dest-toggle:disabled{
+  opacity:1 !important;
+  background:transparent !important;
+  border:0 !important;
+}
+#zmigDestinationTree .zmig-dest-row{
+  border:0 !important;
+  outline:0 !important;
+  box-shadow:none !important;
+}
+#zmigDestinationTree .zmig-dest-row.selected,
+#zmigDestinationTree .zmig-dest-row.pending{
+  outline:0 !important;
+  box-shadow:none !important;
+}
+#zmigDestinationTree .zmig-dest-row.pending{background:var(--hover) !important}
+#zmigDestinationTree .zmig-dest-row.selected:not(.pending){background:transparent !important}
+
+
+/* v0.7.9 compact migration controls */
+.zmig-dialog{
+  font-size:12px !important;
+  width:470px !important;
+}
+.zmig-dialog button,
+.zmig-dialog input,
+.zmig-dialog .zdest-status,
+.zmig-dialog .zotero-row,
+.zmig-dialog .zmig-dest-row{
+  font-size:12px !important;
+}
+.zmig-top-actions{
+  display:grid !important;
+  grid-template-columns:88px 88px 30px minmax(0,1fr) !important;
+  gap:6px !important;
+  align-items:center !important;
+  padding:4px 10px 8px !important;
+}
+.zmig-top-actions>#zoteroSelectAll,
+.zmig-top-actions>#zoteroSelectNone{
+  width:auto !important;
+  min-width:0 !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:3px 7px !important;
+}
+.zmig-refresh-icon{
+  width:30px !important;
+  min-width:30px !important;
+  height:30px !important;
+  min-height:30px !important;
+  padding:0 !important;
+  font-size:17px !important;
+  line-height:28px !important;
+  text-align:center !important;
+}
+.zmig-top-actions>.zmig-destination-picker{
+  min-width:0 !important;
+  padding:0 !important;
+}
+.zmig-top-actions .zmig-destination-button{
+  height:30px !important;
+  min-height:30px !important;
+  padding:3px 7px !important;
+  font-size:12px !important;
+}
+.zmig-dialog .zdest-header{min-height:34px !important;padding:7px 10px !important}
+.zmig-dialog .zdest-status{padding:6px 10px !important}
+.zmig-dialog .zotero-row{min-height:22px !important}
+.zmig-dialog .zdest-buttons button{min-height:30px !important;padding:3px 8px !important}
+.zmig-dialog .zmig-text-action{font-size:12px !important}
+
+
+/* v0.8.0 migration control polish */
+.zmig-top-actions{
+  grid-template-columns:100px 100px minmax(0,1fr) 32px !important;
+}
+
+.zmig-refresh-icon{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  border:0 !important;
+  outline:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  width:32px !important;
+  min-width:32px !important;
+  height:32px !important;
+  min-height:32px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:inherit !important;
+  font-size:21px !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  border-radius:0 !important;
+}
+
+.zmig-refresh-icon:hover,
+.zmig-refresh-icon:focus-visible{
+  background:transparent !important;
+  box-shadow:none !important;
+  opacity:.78;
+}
+
+.zmig-destination-confirm{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:8px !important;
+}
+
+.zmig-destination-confirm-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex:0 0 auto;
+}
+
+.zmig-destination-confirm-actions button{
+  min-width:62px;
+}
+
+
+/* v0.9.6 interaction and top-bar polish */
+button,
+.ctx-item,
+.zmig-text-action {
+  transition: transform 90ms ease, filter 120ms ease, background-color 120ms ease,
+              border-color 120ms ease, opacity 120ms ease;
+}
+button:active:not(:disabled),
+.ctx-item:active,
+.zmig-text-action:active {
+  transform: translateY(1px) scale(0.985);
+}
+button.action-working,
+.ctx-item.action-working {
+  transform: scale(0.985);
+  filter: brightness(1.08);
+  pointer-events: none;
+}
+button.action-success,
+.ctx-item.action-success {
+  transform: scale(1.015);
+  filter: brightness(1.12);
+}
+@keyframes locero-click-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.locero-click-pop { animation: locero-click-pop 150ms ease-out; }
+
+/* Give the top status bar just a little more breathing room so Undo/Redo/Settings
+   no longer touch the lower edge. */
+#topBar, .topbar, .status-bar, .toolbar-top {
+  min-height: 36px !important;
+}
+#topBar button, .topbar button, .status-bar button, .toolbar-top button {
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,.ctx-item,.zmig-text-action { transition:none !important; }
+  .locero-click-pop { animation:none !important; }
+}
+
+
+/* v0.10.3 repair mode */
+.repair-modal{
+  width:min(560px,calc(100vw - 24px));
+  height:min(470px,calc(100vh - 24px));
+  display:flex;
+  flex-direction:column;
+}
+.repair-intro{
+  padding:9px 12px;
+  font-size:11px;
+  opacity:.78;
+  border-bottom:1px solid var(--border);
+}
+.repair-issue-list{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  padding:6px;
+}
+.repair-issue{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  padding:7px 8px;
+  border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent);
+  cursor:pointer;
+}
+.repair-issue:last-child{border-bottom:0}
+.repair-issue:hover{background:var(--hover)}
+.repair-issue input{margin-top:3px}
+.repair-issue-body{min-width:0}
+.repair-issue-title{font-size:11px;font-weight:600}
+.repair-issue-name{
+  font-size:11px;
+  margin-top:2px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.repair-issue-message{
+  font-size:10px;
+  margin-top:2px;
+  opacity:.7;
+}
+.repair-empty{
+  padding:24px 12px;
+  text-align:center;
+  font-size:11px;
+  opacity:.72;
+}
+.repair-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 10px;
+  border-top:1px solid var(--border);
+}
+.repair-footer-status{
+  min-width:0;
+  font-size:10.5px;
+  opacity:.78;
+}
+.repair-footer-actions{
+  display:flex;
+  gap:6px;
+  flex:0 0 auto;
+}
+
+
+/* v0.10.3 repair workflow revision */
+.repair-modal{
+  width:min(760px,calc(100vw - 24px));
+  height:min(560px,calc(100vh - 24px));
+}
+.repair-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  border-bottom:1px solid var(--border);
+}
+.repair-scan-summary{
+  min-width:0;
+  font-size:10.5px;
+  opacity:.75;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.repair-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  min-height:0;
+  flex:1 1 auto;
+  padding:8px;
+}
+.repair-column{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  border:1px solid var(--border);
+  border-radius:5px;
+  overflow:hidden;
+}
+.repair-column-title{
+  font-size:11px;
+  font-weight:600;
+  padding:8px 9px 3px;
+}
+.repair-column-help{
+  font-size:9.8px;
+  opacity:.68;
+  padding:0 9px 7px;
+}
+.repair-list{
+  min-height:0;
+  overflow:auto;
+  padding:4px;
+}
+.repair-list.compact{
+  max-height:130px;
+}
+.repair-card{
+  padding:7px;
+  border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent);
+}
+.repair-card:last-child{border-bottom:0}
+.repair-card-title{
+  font-size:10.8px;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+.repair-card-subtitle{
+  font-size:9.7px;
+  opacity:.67;
+  margin-top:2px;
+  overflow-wrap:anywhere;
+}
+.repair-card-actions{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-top:6px;
+  flex-wrap:wrap;
+}
+.repair-card-actions button,
+.repair-card-actions select{
+  font-size:9.8px;
+  min-height:25px;
+}
+.repair-match-select{
+  min-width:120px;
+  flex:1 1 150px;
+}
+.danger-subtle{
+  opacity:.88;
+}
+.repair-empty-small{
+  padding:18px 8px;
+  text-align:center;
+  font-size:10px;
+  opacity:.65;
+}
+.repair-metadata-area{
+  margin:0 8px 8px;
+  border:1px solid var(--border);
+  border-radius:5px;
+  overflow:hidden;
+}
+@media (max-width:680px){
+  .repair-columns{grid-template-columns:1fr}
+}
+
+/* v0.10.17: nudge only the undo/redo glyphs upward; button hitboxes stay fixed. */
+#undoBtn .history-icon,#redoBtn .history-icon{display:inline-block;transform:translateY(-2.15px);pointer-events:none}
+.backup-explainer strong{opacity:1}
+
+
+/* v0.10.18: calm button interactions, clearer backup spacing, and repair navigation. */
+button, .ctx-item, .zmig-text-action {
+  transition: filter 120ms ease, background-color 120ms ease, border-color 120ms ease, opacity 120ms ease !important;
+}
+#topActions button:active,
+button:active:not(:disabled), .ctx-item:active, .zmig-text-action:active,
+button.action-working, .ctx-item.action-working,
+button.action-success, .ctx-item.action-success {
+  transform:none !important;
+}
+.locero-click-pop { animation:none !important; }
+.backup-limit-label{margin-top:12px !important;}
+.native-helper-warning{margin:8px 0 10px !important;padding:7px 8px;border:1px solid color-mix(in srgb,#c6922d 55%,var(--border));border-radius:4px;opacity:.95 !important;}
+.item.repair-highlight{outline:2px solid color-mix(in srgb,#2f80c9 78%,white);outline-offset:-2px;background:color-mix(in srgb,#2f80c9 24%,var(--panel)) !important;}
+
+/* v0.10.19 settings spacing/polish */
+#settingsBtn .gear{display:inline-block;transform:translateY(-2px);pointer-events:none}
+.backup-retention-info{margin-top:1px !important;margin-bottom:8px !important}
+.backup-explainer{font-size:9px !important;line-height:1.35 !important;margin:5px 0 0 !important;padding:0 !important;text-align:left !important;opacity:.72}
+.backup-explainer strong{font-size:9px;font-weight:600;opacity:1}
+#repairDiagnosticsSection{border-top:0 !important;padding-top:9px}
+.repair-intro{margin-bottom:10px !important}
+
+
+/* v0.10.20 Settings polish */
+#repairDiagnosticsSection .repair-intro{
+  font-size:9px !important;
+  line-height:1.35 !important;
+  text-align:left !important;
+  padding:0 !important;
+  margin:2px 0 6px !important;
+  border-bottom:0 !important;
+  opacity:.72 !important;
+}
+
+/* v0.10.21 Settings micro-adjustments */
+/* Move only the visible settings glyph; keep the existing button hitbox untouched. */
+#settingsBtn .gear{transform:translateY(-1.5px) !important;}
+
+/* Restore a divider immediately above Repair & Diagnostics. */
+#repairDiagnosticsSection{
+  border-top:1px solid var(--border) !important;
+  padding-top:9px;
+}
+
+/* Match the normal Settings note size (e.g. "A local-bookmarks workflow for Zotero."). */
+#repairDiagnosticsSection .repair-intro{
+  font-size:10px !important;
+}
+
+/* Settings support links */
+.support-note{margin:0 0 7px}.support-action{margin-top:0}
+
+.shortcut-letter{text-decoration:underline;text-underline-offset:2px}
+
+
+#topActions .save-current-locero,
+#topActions .send-current-zotero{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:nowrap;
+  white-space:nowrap;
+}
+
+
+/* Keyboard navigation highlight. This is separate from multi-selection. */
+.item.keyboard-current,
+.zdest-row.keyboard-current,
+.zmig-dest-row.keyboard-current{
+  outline:1px solid currentColor;
+  outline-offset:-2px;
+  background:var(--hover);
+}
+#topActions button.keyboard-current,
+#settingsPanel button.keyboard-current,
+#settingsPanel select.keyboard-current,
+#settingsPanel input.keyboard-current{
+  outline:1px solid currentColor;
+  outline-offset:-2px;
+}
+
+/* Keep keyboard selection visually consistent and prevent Firefox's native
+   focus ring/background from looking like a second simultaneous selection. */
+#topActions button:focus,
+#topActions button:focus-visible{
+  outline:none;
+  box-shadow:none;
+}
+#topActions button.keyboard-current{
+  outline:1px solid currentColor;
+  outline-offset:-2px;
+}
+#topActions .open-downloads.keyboard-current,
+#topActions #undoBtn.keyboard-current,
+#topActions #redoBtn.keyboard-current,
+#topActions #settingsBtn.keyboard-current{
+  background:var(--hover);
+}
+
+.zdest-overlay button.keyboard-current{outline:1px solid currentColor;outline-offset:-2px}
+.zdest-overlay button:focus,.zdest-overlay button:focus-visible{box-shadow:none}
+
+
+.shortcut-dialog{width:500px;max-height:520px;background:var(--panel);color:var(--panel-fg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.shortcut-help{padding:0 12px 8px;font-size:11px;opacity:.75}
+.shortcut-rows{margin:0 12px 8px;min-height:0;max-height:390px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;flex:1 1 auto}
+.shortcut-row{display:grid;grid-template-columns:minmax(0,1fr) 130px 58px;gap:7px;align-items:center;min-height:29px;padding:0 7px;border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);cursor:default}
+.shortcut-row:last-child{border-bottom:0}
+.shortcut-row.keyboard-current{outline:1px solid currentColor;outline-offset:-2px;background:var(--hover)}
+.shortcut-row-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shortcut-row-value{font-family:ui-monospace,"Cascadia Mono",monospace;font-size:10.5px}
+.shortcut-row-hint{text-align:right;font-size:10px;opacity:.65}
+.shortcut-edit-area{margin:7px 12px 12px;padding:8px 8px 10px;border:1px solid var(--border);border-radius:4px}
+.shortcut-edit-label{font-weight:600;margin-bottom:4px}
+#shortcutCaptureInput{box-sizing:border-box;width:100%;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:4px;background:var(--hover);color:inherit}
+.shortcut-edit-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
+
+
+
+/* Keyboard Shortcuts dialog layout */
+.shortcut-dialog{
+  position:relative;
+}
+.shortcut-dialog > .zdest-title-row{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 12px;
+  flex:0 0 auto;
+}
+.shortcut-dialog > .zdest-title-row h3{
+  margin:0;
+  font-size:16px;
+  line-height:1.2;
+}.shortcut-dialog > .zdest-footer{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:6px;
+  padding:10px 12px 12px;
+  margin-top:0;
+  flex:0 0 auto;
+}
+.shortcut-dialog > .zdest-footer button{
+  min-width:70px;
+}
+
+.version-easter-egg{
+  width:100%;
+  display:block;
+  text-align:left;
+  border:0!important;
+}
+.version-easter-egg:focus,
+.version-easter-egg.keyboard-current{
+  outline:1px solid currentColor!important;
+  outline-offset:-2px!important;
+}
+  18%{opacity:1}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15)}
+}
+
+
+
+
+
+.shortcut-row-built-in{
+  font-size:10px;
+  opacity:.65;
+}
+
+
+
+
+.shortcut-row-action{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+}
+.shortcut-row-edit{
+  min-width:52px;
+  height:22px;
+  padding:0 6px;
+  font-size:10px;
+  border:1px solid var(--border);
+  border-radius:3px;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));
+  color:inherit;
+}
+.shortcut-row-edit:hover,
+.shortcut-row-edit.keyboard-current,
+.shortcut-row-edit:focus-visible{
+  background:color-mix(in srgb, var(--panel-fg) 18%, var(--panel))!important;
+  outline:1px solid currentColor;
+  outline-offset:-2px;
+}
+
+
+
+.repair-modal > .zdest-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+
+/* One close-button treatment everywhere: Settings, Repair, Shortcuts. */
+.locero-close-x,
+.settings-panel .locero-close-x,
+.shortcut-dialog .locero-close-x,
+.repair-modal .locero-close-x{
+  -moz-appearance:none;
+  appearance:none;
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 34px!important;
+  border:0!important;
+  border-radius:5px!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  color:inherit!important;
+  font-size:25px!important;
+  font-weight:400!important;
+  line-height:1!important;
+  cursor:pointer;
+  outline:none!important;
+}
+.locero-close-x:hover{
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  outline:none!important;
+}
+.locero-close-x.keyboard-current,
+.locero-close-x:focus-visible{
+  background:var(--hover)!important;
+  outline:1px solid currentColor!important;
+  outline-offset:-2px!important;
+}
+
+
+
+
+.repair-audit-area{margin:10px 12px 0;padding-top:10px;border-top:1px solid var(--border)}
+.repair-audit-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.repair-audit-heading button{flex:0 0 auto}
+#repairSaveAudit{max-height:190px;overflow-y:auto}
+#repairSaveAudit .repair-card{margin-bottom:5px}
+#repairSaveAudit .audit-failed,#repairSaveAudit .audit-interrupted{outline:1px solid color-mix(in srgb,currentColor 35%,transparent);outline-offset:-1px}
+
+
+/* v0.10.104 bookmark favicons */
+.bookmark-thumb{
+  width:16px;height:16px;flex:0 0 16px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;border:0;border-radius:2px;background:transparent;
+}
+.bookmark-thumb img{
+  width:16px;height:16px;display:block;object-fit:contain;
+}
+
+.item.bookmark.has-thumbnail .bookmark-thumb-placeholder{display:none}
+
+/* v0.10.104 neutral fallback icons when no favicon is available */
+.bookmark-thumb-placeholder{
+  width:16px;height:16px;flex:0 0 16px;
+  position:relative;display:block;
+  color:color-mix(in srgb,currentColor 72%,transparent);
+  opacity:.82;
+}
+
+/* Globe/web-page fallback, inspired by browser generic web icons but original artwork */
+.bookmark-thumb-placeholder.fallback-web{
+  box-sizing:border-box;
+  border:1.7px solid currentColor;
+  border-radius:50%;
+}
+.bookmark-thumb-placeholder.fallback-web::before{
+  content:"";
+  position:absolute;
+  left:3.2px;right:3.2px;top:-1.7px;bottom:-1.7px;
+  border-left:1.35px solid currentColor;
+  border-right:1.35px solid currentColor;
+  border-radius:50%;
+}
+.bookmark-thumb-placeholder.fallback-web::after{
+  content:"";
+  position:absolute;
+  left:1px;right:1px;top:6px;
+  border-top:1.35px solid currentColor;
+}
+
+/* PDF fallback: neutral folded document with small PDF label */
+.bookmark-thumb-placeholder.fallback-pdf{
+  width:14px;height:16px;
+  box-sizing:border-box;
+  border:1.35px solid currentColor;
+  border-radius:1.5px;
+  background:transparent;
+}
+.bookmark-thumb-placeholder.fallback-pdf::before{
+  content:"";
+  position:absolute;
+  width:4px;height:4px;
+  right:-1.35px;top:-1.35px;
+  background:var(--panel);
+  border-left:1.35px solid currentColor;
+  border-bottom:1.35px solid currentColor;
+}
+.bookmark-thumb-placeholder.fallback-pdf::after{
+  content:"PDF";
+  position:absolute;
+  left:1px;bottom:1px;
+  font-size:5.7px;
+  line-height:1;
+  font-weight:700;
+  letter-spacing:-.25px;
+  color:currentColor;
+}
+
+/* v0.10.104 bookmark URL preview status bar */
+.bookmark-url-preview{
+  position:fixed;
+  left:0;right:0;bottom:0;
+  height:17px;
+  box-sizing:border-box;
+  padding:1px 7px 0;
+  border-top:1px solid var(--border);
+  background:var(--status);
+  color:var(--fg);
+  font-size:10px;
+  line-height:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  z-index:5001;
+  pointer-events:none;
+  opacity:.92;
+}
+.bookmark-url-preview:empty{opacity:.55}
+
+/* Folder direction arrows intentionally removed */
+
+
+/* v0.10.104 visible directional folder arrows */
+.item.folder .arrow{
+  width:12px;
+  flex:0 0 12px;
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  line-height:1;
+  opacity:.88;
+  color:currentColor;
+  pointer-events:none;
+}
+.item.folder:hover .arrow,
+.item.folder.active .arrow,
+.item.folder.keyboard-current .arrow{
+  opacity:1;
+}
+.item.folder .arrow-left{margin-right:1px}
+.item.folder .arrow-right{margin-left:1px}
+
+/* v0.10.104: only the deepest/next-action column shows folder arrows */
+.root.arrows-suppressed > .item.folder .arrow,
+.flyout.arrows-suppressed > .item.folder .arrow{
+  visibility:hidden !important;
+}
+.root:not(.arrows-suppressed) > .item.folder .arrow,
+.flyout:not(.arrows-suppressed) > .item.folder .arrow{
+  visibility:visible !important;
+}
+
+
+/* v0.10.106: roomier Repair/Diagnostics and first-run onboarding */
+.repair-modal{
+  width:min(1000px,calc(100vw - 12px))!important;
+  height:min(720px,calc(100vh - 12px))!important;
+  max-width:none!important;
+  overflow:hidden;
+}
+.repair-toolbar{padding:10px 12px!important;flex:0 0 auto}
+.repair-columns{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  padding:10px 12px!important;
+  min-height:210px!important;
+}
+.repair-column{min-height:190px!important}
+.repair-card{padding:9px!important}
+.repair-card-actions{gap:7px!important}
+.repair-card-actions button{flex:0 0 auto}
+.repair-match-select{min-width:180px!important;flex:1 1 260px!important}
+.repair-metadata-area{margin:0 12px 10px!important}
+.repair-audit-area{margin:8px 12px 0!important;min-height:0;display:flex;flex-direction:column}
+#repairSaveAudit{max-height:220px!important;min-height:0;overflow:auto}
+.repair-footer{flex:0 0 auto;padding:8px 12px!important}
+@media (max-width:720px){
+  .repair-modal{width:calc(100vw - 8px)!important;height:calc(100vh - 8px)!important}
+  .repair-columns{grid-template-columns:1fr!important;overflow:auto;display:block!important}
+  .repair-column{min-height:180px;margin-bottom:10px}
+}
+
+.getting-started-settings{margin-top:9px}
+.onboarding-overlay{z-index:2200}
+.onboarding-dialog{
+  width:min(840px,calc(100vw - 18px));
+  height:min(650px,calc(100vh - 18px));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.onboarding-header{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 18px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;
+}
+.onboarding-close-x{width:30px;height:30px;padding:0;border:0;border-radius:4px;background:transparent;color:inherit;font-size:22px;line-height:1;cursor:pointer}
+.onboarding-close-x:hover,.onboarding-close-x:focus-visible{background:var(--hover)}
+.onboarding-kicker{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.66;margin-bottom:3px}
+#onboardingTitle{font-size:18px;line-height:1.2}
+.onboarding-scroll{padding:16px 18px 18px;overflow:auto;min-height:0;flex:1 1 auto}
+.onboarding-intro{font-size:11.5px;line-height:1.5;margin:0 0 14px;opacity:.86;max-width:720px}
+.onboarding-checklist{display:flex;flex-direction:column;gap:9px}
+.onboarding-check{
+  display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;
+  border:1px solid var(--border);border-radius:7px;padding:11px 12px;background:color-mix(in srgb,var(--panel-fg) 2%,var(--panel));
+}
+.onboarding-check.done{background:color-mix(in srgb,#31a36b 8%,var(--panel));border-color:color-mix(in srgb,#31a36b 45%,var(--border))}
+.onboarding-check.problem{border-color:color-mix(in srgb,#c97040 48%,var(--border))}
+.onboarding-check-icon{
+  width:22px;height:22px;border:1px solid var(--border);border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;
+}
+.onboarding-check.done .onboarding-check-icon{background:#31a36b;color:white;border-color:#31a36b}
+.onboarding-check-title{font-size:11.5px;font-weight:700}
+.onboarding-check-title span{font-size:9px;font-weight:500;opacity:.6;margin-left:5px}
+.onboarding-check-status{font-size:10.5px;margin-top:2px;overflow-wrap:anywhere}
+.onboarding-check-help{font-size:9.7px;line-height:1.4;opacity:.68;margin-top:4px;max-width:590px}
+.onboarding-check > button{min-width:92px}
+.onboarding-section-title{font-size:11.5px;font-weight:700;margin:18px 0 8px}
+.onboarding-tip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.onboarding-tip{border:1px solid var(--border);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:4px}
+.onboarding-tip strong{font-size:10.8px}.onboarding-tip span{font-size:9.8px;line-height:1.4;opacity:.7}
+.onboarding-footer{
+  flex:0 0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;
+  padding:10px 14px;border-top:1px solid var(--border);background:var(--panel);
+}
+#onboardingFooterNote{font-size:9.8px;opacity:.68;text-align:right}
+#onboardingFinish:disabled{opacity:.45;cursor:default}
+@media (max-width:620px){
+  .onboarding-dialog{width:calc(100vw - 8px);height:calc(100vh - 8px)}
+  .onboarding-check{grid-template-columns:24px minmax(0,1fr)}
+  .onboarding-check > button{grid-column:2;justify-self:start}
+  .onboarding-tip-grid{grid-template-columns:1fr}
+  .onboarding-footer{grid-template-columns:auto auto}
+  #onboardingFooterNote{grid-column:1/-1;grid-row:1;text-align:left}
+}
+
+
+/* v0.10.107: prioritise repair issue space; keep history compact below. */
+.repair-modal{
+  width:min(1060px,calc(100vw - 6px))!important;
+  height:calc(100vh - 6px)!important;
+}
+.repair-columns{
+  flex:1 1 310px!important;
+  min-height:270px!important;
+}
+.repair-column{min-height:250px!important}
+.repair-audit-area{
+  flex:0 1 155px!important;
+  max-height:165px!important;
+}
+#repairSaveAudit{
+  flex:1 1 auto!important;
+  max-height:105px!important;
+}
+@media (max-height:610px){
+  .repair-columns{min-height:235px!important}
+  .repair-column{min-height:215px!important}
+  .repair-audit-area{max-height:125px!important}
+  #repairSaveAudit{max-height:70px!important}
+}
+
+
+/* v0.10.114: sequential, polished first-run setup */
+.onboarding-check.locked{
+  opacity:.42;
+  filter:saturate(.45);
+  background:color-mix(in srgb,var(--panel-fg) 1%,var(--panel));
+}
+.onboarding-check.locked > button{cursor:default;opacity:.6}
+.onboarding-check.locked .onboarding-check-icon{opacity:.65}
+#onboardingInstallHelper,#onboardingInstallZotero{min-width:138px}
+.onboarding-footer{grid-template-columns:auto 1fr auto}
+#onboardingFooterNote{text-align:right}
+@media (max-width:620px){
+  .onboarding-footer{grid-template-columns:auto 1fr auto}
+  #onboardingFooterNote{grid-column:auto;grid-row:auto;text-align:left}
+}
+
+/* v0.10.114 onboarding: locked steps keep their explanatory copy without placeholder status text. */
+.onboarding-check-status:empty { display: none; }
+
+
+/* v0.10.118: skippable onboarding and faster hand-off feedback. */
+#onboardingSkip{justify-self:start}
+#onboardingFinish{justify-self:end}
+@media (max-width:620px){
+  .onboarding-footer{grid-template-columns:auto auto!important}
+  #onboardingFooterNote{grid-column:1/-1!important;grid-row:1!important;text-align:left!important}
+  #onboardingSkip{grid-column:1;grid-row:2}
+  #onboardingFinish{grid-column:2;grid-row:2}
+}
+
+/* v0.10.124: Configuration menu, helper removal, and Zotero setup guidance. */
+.onboarding-check-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:6px;
+  min-width:138px;
+}
+.onboarding-check-actions > button{min-width:138px}
+.onboarding-check-actions .secondary-danger{
+  background:transparent;
+  border-color:color-mix(in srgb,#b84c4c 55%,var(--border));
+  color:inherit;
+}
+.onboarding-check-actions .secondary-danger:hover{
+  background:color-mix(in srgb,#b84c4c 10%,var(--panel));
+}
+.zotero-install-guide{
+  margin-top:8px;
+  font-size:9.7px;
+  line-height:1.45;
+  opacity:.82;
+}
+.zotero-install-guide summary{
+  cursor:pointer;
+  font-weight:650;
+  user-select:none;
+}
+.zotero-install-guide ol{
+  margin:7px 0 0 18px;
+  padding:0;
+}
+.zotero-install-guide li{margin:3px 0}
+@media (max-width:620px){
+  .onboarding-check-actions{grid-column:2;justify-self:start;min-width:0;flex-direction:row;flex-wrap:wrap}
+  .onboarding-check-actions > button{min-width:0}
+}
+
+
+/* v0.10.124: Windows Helper is mandatory; only Zotero can be postponed. */
+.onboarding-footer{grid-template-columns:1fr auto}
+#onboardingFooterNote{text-align:left}
+#onboardingFinish{justify-self:end}
+.onboarding-zotero-actions{align-self:center}
+#onboardingSkip{min-width:138px}
+@media (max-width:620px){
+  .onboarding-footer{grid-template-columns:1fr auto!important}
+  #onboardingFooterNote{grid-column:1!important;grid-row:1!important;text-align:left!important}
+  #onboardingFinish{grid-column:2!important;grid-row:1!important}
+  .onboarding-zotero-actions{grid-column:2;justify-self:start}
+}
+
+
+/* v0.10.126: persistent compatibility/update gate. */
+.onboarding-overlay.update-required .onboarding-dialog{border:1px solid color-mix(in srgb, #d33 55%, var(--border,#888));}
+.onboarding-overlay.update-required .onboarding-kicker{font-weight:700;}
+.onboarding-check.problem .onboarding-check-status{font-weight:700;}
+
+/* v0.10.127: persistent Updates & Configuration status control. */
+#status{left:24px;padding-left:6px}
+
+/* The Settings panel no longer needs a duplicate Configuration button. */
+.getting-started-settings{display:none!important}
+
+/* v0.10.127: Skip belongs in the footer and appears only at the Zotero stage. */
+.onboarding-footer{grid-template-columns:auto minmax(0,1fr) auto!important}
+#onboardingSkip{justify-self:start;min-width:96px}
+#onboardingFooterNote{text-align:left!important}
+#onboardingFinish{justify-self:end}
+@media (max-width:620px){
+  .onboarding-footer{grid-template-columns:auto minmax(0,1fr) auto!important}
+  #onboardingSkip{grid-column:1!important;grid-row:1!important}
+  #onboardingFooterNote{grid-column:2!important;grid-row:1!important}
+  #onboardingFinish{grid-column:3!important;grid-row:1!important}
+}
+
+/* v0.10.127: compact, separately scrolling repair issue lists. */
+.repair-modal{
+  width:min(1060px,calc(100vw - 6px))!important;
+  height:calc(100vh - 6px)!important;
+}
+.repair-columns{
+  flex:0 0 178px!important;
+  min-height:178px!important;
+  max-height:178px!important;
+  overflow:visible!important;
+}
+.repair-column{
+  min-height:0!important;
+  height:158px!important;
+  max-height:158px!important;
+}
+.repair-column > .repair-list{
+  flex:1 1 auto;
+  min-height:96px!important;
+  overflow:auto!important;
+}
+.repair-card{padding:8px!important}
+.repair-card-actions{margin-top:6px!important}
+.repair-match-select{min-height:27px!important}
+
+/* Give the structured history the room recovered from the issue panels. */
+.repair-audit-area{
+  flex:1 1 auto!important;
+  max-height:none!important;
+  min-height:130px!important;
+  overflow:hidden;
+}
+#repairSaveAudit{
+  flex:1 1 auto!important;
+  max-height:none!important;
+  min-height:92px!important;
+  overflow:auto!important;
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:0!important;
+}
+.repair-audit-table{
+  width:100%;border-collapse:collapse;table-layout:fixed;font-size:9.6px;
+}
+.repair-audit-table th{
+  position:sticky;top:0;z-index:2;background:var(--panel);text-align:left;
+  font-size:9.2px;font-weight:700;padding:6px 7px;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.repair-audit-table td{
+  padding:6px 7px;border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent);
+  vertical-align:top;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.repair-audit-table tr:last-child td{border-bottom:0}
+.repair-audit-table tr.audit-failed td,.repair-audit-table tr.audit-interrupted td{
+  background:color-mix(in srgb,#a73737 7%,var(--panel));
+}
+.repair-audit-table .audit-name{width:23%}
+.repair-audit-table .audit-type{width:9%}
+.repair-audit-table .audit-destination{width:16%}
+.repair-audit-table .audit-status{width:13%}
+.repair-audit-table .audit-source{width:24%}
+.repair-audit-table .audit-details{width:15%}
+.audit-source-link{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit;text-decoration:underline;cursor:pointer}
+.audit-cell-detail{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.78}
+
+@media (max-height:610px){
+  .repair-columns{flex-basis:164px!important;min-height:164px!important;max-height:164px!important}
+  .repair-column{height:144px!important;max-height:144px!important}
+  .repair-audit-area{min-height:112px!important}
+}
+
+.audit-inline-btn{margin-top:4px;padding:2px 6px;font-size:9px;border:1px solid var(--border);background:var(--panel);color:inherit;border-radius:3px;cursor:pointer}
+.audit-inline-btn:hover{background:var(--hover)}
+/* Footer placement when Zotero Skip is conditionally present. */
+#onboardingSkip{grid-column:1}
+#onboardingFooterNote{grid-column:2}
+#onboardingFinish{grid-column:3}
+#onboardingSkip[hidden] + #onboardingFooterNote{grid-column:1 / 3}
+@media (max-width:620px){
+  #onboardingSkip{grid-column:1!important}
+  #onboardingFooterNote{grid-column:2!important}
+  #onboardingFinish{grid-column:3!important}
+  #onboardingSkip[hidden] + #onboardingFooterNote{grid-column:1 / 3!important}
+}
+
+
+/* v0.10.128: tool-style status button and right-aligned Zotero skip action. */
+.onboarding-footer{grid-template-columns:minmax(0,1fr) auto auto!important;gap:8px!important}
+#onboardingFooterNote{grid-column:1!important;grid-row:1!important;text-align:left!important}
+#onboardingSkip{grid-column:2!important;grid-row:1!important;justify-self:end!important;min-width:96px}
+#onboardingFinish{grid-column:3!important;grid-row:1!important;justify-self:end!important}
+@media (max-width:620px){
+  .onboarding-footer{grid-template-columns:minmax(0,1fr) auto auto!important}
+  #onboardingFooterNote{grid-column:1!important;grid-row:1!important}
+  #onboardingSkip{grid-column:2!important;grid-row:1!important}
+  #onboardingFinish{grid-column:3!important;grid-row:1!important}
+}
+
+
+/* v0.10.130: simplified Done flow, tutorial, and component management. */
+.onboarding-tips,.zotero-install-guide{display:none!important}
+.extension-status-row{grid-template-columns:24px minmax(0,1fr)!important}
+.extension-status-row .onboarding-check-body{grid-column:2}
+.how-to-use-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.how-to-use-list>div{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--border) 60%,transparent);font-size:10px;line-height:1.4}
+.how-to-use-list>div:last-child{border-bottom:0}
+.how-to-use-list strong{font-size:10.2px}
+.how-to-use-list span{opacity:.76}
+@media(max-width:520px){.how-to-use-list>div{grid-template-columns:72px minmax(0,1fr)}}
+
+
+/* v0.10.130 — simplified setup/configuration and guided How to Use. */
+.onboarding-optional-note{grid-column:2 / -1;font-size:10px;opacity:.7;margin-top:2px;}
+.onboarding-maintenance{display:flex;justify-content:flex-end;margin-top:14px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--border) 55%,transparent);}
+.onboarding-maintenance button{font-size:10px;min-height:27px;}
+.onboarding-footer{grid-template-columns:1fr auto!important;align-items:center;gap:10px!important;}
+#onboardingFooterNote{grid-column:1!important;grid-row:1!important;}
+#onboardingFinish{grid-column:2!important;grid-row:1!important;justify-self:end!important;min-width:78px;}
+
+.how-to-dialog{width:min(560px,calc(100vw - 26px));max-height:calc(100vh - 28px);background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 16px 38px rgba(0,0,0,.38);padding:12px;display:flex;flex-direction:column;gap:10px;}
+.how-to-slides{min-height:330px;display:flex;align-items:stretch;}
+.how-to-slide{width:100%;text-align:center;}
+.how-to-slide h3{margin:12px 0 6px;font-size:15px;}
+.how-to-slide p{max-width:440px;margin:0 auto;font-size:11px;line-height:1.5;opacity:.86;}
+.how-to-illustration{height:205px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--panel) 82%,var(--bg));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:16px;box-sizing:border-box;overflow:hidden;}
+.howto-browser-bar{width:78%;border:1px solid var(--border);border-radius:5px;padding:7px;background:var(--bg);font-size:11px;}
+.howto-action-pill{padding:7px 14px;border-radius:5px;border:1px solid var(--border);font-weight:600;background:color-mix(in srgb,#1877c9 35%,var(--panel));}
+.howto-arrow{font-size:22px;line-height:1;opacity:.72}.howto-arrow.horizontal{font-size:25px;}
+.howto-file-card{border:1px solid var(--border);border-radius:6px;padding:10px 16px;background:var(--bg);font-weight:600;}
+.organise-illustration{align-items:flex-start;text-align:left;padding-left:22%;gap:10px}.howto-folder{font-weight:700}.howto-folder.child{padding-left:18px}.howto-bookmark{padding-left:38px;opacity:.88}
+.zotero-illustration{flex-direction:row;flex-wrap:wrap}.howto-zotero-card{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:6px;padding:9px 14px;background:var(--bg)}.howto-zotero-card b{font-size:20px}.howto-meta{flex-basis:100%;font-size:10px;opacity:.72}
+.files-illustration{align-items:flex-start;padding-left:22%;}.howto-folder-large{font-size:18px;font-weight:700}.howto-file-row{margin-left:22px;border:1px solid var(--border);border-radius:4px;padding:7px 10px;width:62%;text-align:left;background:var(--bg);font-size:10px}
+.how-to-nav{display:grid;grid-template-columns:70px 1fr 70px;align-items:center;gap:8px}.how-to-nav button{min-height:30px}.how-to-progress{text-align:center;font-size:10px;opacity:.72}
+
+.uninstall-components-dialog{width:min(470px,calc(100vw - 26px));background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 16px 38px rgba(0,0,0,.38);padding:12px;}
+.uninstall-component-list{border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:10px}.uninstall-component-list>div{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border)}.uninstall-component-list>div:last-child{border-bottom:0}.uninstall-component-list strong,.uninstall-component-list span{display:block}.uninstall-component-list span{font-size:9.7px;opacity:.68;margin-top:2px}.manual-badge{border:1px solid var(--border);border-radius:999px;padding:4px 8px!important;margin:0!important;opacity:.75!important;}
+
+/* v0.10.131: mandatory first-time Zotero setup and update preference. */
+#updateModeControls{margin-top:2px;}
+#updateModeNote{margin-top:7px;line-height:1.45;}
+#onboardingZoteroOptional{font-weight:500;}
+
+
+/* v0.10.135 — one-time setup + consolidated diagnostics. */
+#repairDiagnosticsSection .wide-btn{width:100%;}
+.repair-toolbar{display:grid!important;grid-template-columns:auto auto minmax(0,1fr)!important;align-items:center!important;}
+.repair-toolbar #copyDebugLog{white-space:nowrap;}
+.repair-scan-summary{text-align:right;}
+.repair-modal{
+  width:min(1060px,calc(100vw - 8px))!important;
+  height:min(720px,calc(100vh - 8px))!important;
+  display:grid!important;
+  grid-template-rows:auto auto minmax(190px,1fr) auto minmax(120px,.78fr) auto!important;
+  overflow:hidden!important;
+}
+.repair-columns{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:10px!important;
+  padding:10px 12px!important;
+  min-height:0!important;max-height:none!important;height:auto!important;
+  overflow:hidden!important;
+  flex:none!important;
+}
+.repair-column{
+  min-width:0!important;min-height:0!important;height:auto!important;max-height:none!important;
+  margin:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;
+}
+.repair-column > .repair-list{flex:1 1 auto!important;min-height:0!important;overflow:auto!important;}
+.repair-metadata-area{max-height:112px!important;overflow:auto!important;}
+.repair-audit-area{
+  min-height:0!important;max-height:none!important;height:auto!important;
+  margin:6px 12px 0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;
+}
+#repairSaveAudit{flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:auto!important;}
+.repair-footer{min-height:30px;}
+/* The diagnostics dialog is intentionally two-column even in the narrow popup.
+   Previous responsive rules stacked these panels into the same fixed-height row,
+   which caused Save & Migration History to overlap Files Without a Record. */
+@media (max-width:720px){
+  .repair-columns{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;overflow:hidden!important;}
+  .repair-column{min-height:0!important;height:auto!important;max-height:none!important;margin:0!important;}
+}
+@media (max-height:610px){
+  .repair-modal{grid-template-rows:auto auto minmax(150px,1fr) auto minmax(92px,.6fr) auto!important;}
+  .repair-columns{min-height:0!important;max-height:none!important;height:auto!important;}
+  .repair-column{min-height:0!important;height:auto!important;max-height:none!important;}
+  .repair-audit-area{min-height:0!important;max-height:none!important;}
+  #repairSaveAudit{min-height:0!important;max-height:none!important;}
+}
+
+
+/* v0.10.136 — taller repair panels, compact header summary, updates inside Diagnostics. */
+.repair-modal{
+  grid-template-rows:auto auto minmax(235px,1.45fr) auto minmax(105px,.62fr) auto!important;
+}
+.repair-toolbar{grid-template-columns:auto auto minmax(0,1fr)!important;}
+.repair-scan-summary{font-size:11px;line-height:1.25;text-align:right;white-space:normal;}
+.repair-columns{padding-bottom:8px!important;}
+.repair-column{min-height:235px!important;}
+.repair-audit-area{margin:6px 12px 8px!important;border-top:1px solid var(--border);padding-top:10px;}
+.repair-footer{display:none!important;}
+.repair-updates-area{
+  margin:0 12px 10px;
+  padding-top:9px;
+  border-top:1px solid var(--border);
+  min-width:0;
+}
+.repair-updates-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.repair-update-actions{display:flex;gap:7px;flex:0 0 auto;}
+.repair-update-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-top:7px;}
+.repair-update-mode{margin:0!important;min-width:176px;}
+.repair-update-note{margin:0!important;line-height:1.3!important;min-width:0;}
+.repair-update-components{font-size:10.5px;line-height:1.35;color:var(--muted);margin-top:6px;white-space:normal;overflow-wrap:anywhere;}
+@media (max-height:610px){
+  .repair-modal{grid-template-rows:auto auto minmax(190px,1.3fr) auto minmax(82px,.55fr) auto!important;}
+  .repair-column{min-height:190px!important;}
+  .repair-update-components{display:none;}
+}
+
+
+/* v0.10.137 — install-only setup, automatic-only updates, taller scrollable diagnostics. */
+.diagnostics-settings-actions{gap:7px!important;}
+.diagnostics-settings-actions .danger-subtle{width:100%;}
+.repair-modal{
+  height:min(760px,calc(100vh - 8px))!important;
+  grid-template-rows:auto auto 265px auto 195px auto!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  align-content:start!important;
+  scrollbar-gutter:stable;
+}
+.repair-columns{min-height:265px!important;height:265px!important;overflow:hidden!important;}
+.repair-column{min-height:245px!important;height:auto!important;}
+.repair-audit-area{
+  min-height:195px!important;
+  height:195px!important;
+  max-height:none!important;
+  overflow:hidden!important;
+}
+#repairSaveAudit{min-height:142px!important;height:auto!important;max-height:none!important;overflow:auto!important;}
+.repair-update-row.automatic-only{display:block!important;margin-top:7px!important;}
+.repair-update-row.automatic-only .repair-update-note{margin:0!important;}
+@media (max-height:610px){
+  .repair-modal{grid-template-rows:auto auto 225px auto 165px auto!important;overflow-y:auto!important;}
+  .repair-columns{min-height:225px!important;height:225px!important;}
+  .repair-column{min-height:205px!important;}
+  .repair-audit-area{min-height:165px!important;height:165px!important;}
+  #repairSaveAudit{min-height:112px!important;}
+}
+
+
+/* v0.10.138 — first-run six-page setup, clean status bar, diagnostics without updates. */
+#status{left:24px!important;padding-left:6px!important;}
+.how-to-use-section{display:none!important;}
+#uninstallLoceroSection .danger-subtle{width:100%;}
+.uninstall-preserve-note{font-size:10.3px!important;line-height:1.45!important;opacity:.82!important;}
+
+.setup-wizard-dialog{
+  width:min(620px,calc(100vw - 16px))!important;
+  height:min(510px,calc(100vh - 16px))!important;
+  max-height:none!important;
+}
+.setup-wizard-pages{flex:1 1 auto;min-height:0;padding:14px 18px 10px;overflow:auto;display:flex;align-items:stretch;}
+.setup-wizard-page{width:100%;text-align:center;align-self:stretch;}
+.setup-wizard-page[hidden]{display:none!important;}
+.setup-wizard-page h3{font-size:15px;margin:11px 0 6px;}
+.setup-wizard-page>p{font-size:11px;line-height:1.5;opacity:.84;max-width:475px;margin:0 auto 9px;}
+.setup-wizard-page .how-to-illustration{height:235px;max-width:520px;margin:0 auto;}
+.setup-installed-note{font-size:9.7px;opacity:.62;margin-top:11px;}
+.setup-installed-note span{margin-left:5px;}
+.setup-component-page{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 20px 12px;}
+.setup-component-mark{width:58px;height:58px;border:1px solid var(--border);border-radius:14px;display:grid;place-items:center;font-size:28px;font-weight:800;margin-bottom:3px;background:color-mix(in srgb,#1877c9 20%,var(--panel));}
+.setup-component-mark.zotero-mark{background:color-mix(in srgb,#b3261e 20%,var(--panel));}
+.setup-component-card{width:min(500px,100%);margin:8px auto 10px;text-align:left;grid-template-columns:26px minmax(0,1fr)!important;}
+.setup-primary-action{min-width:210px;min-height:34px;border:1px solid var(--border);border-radius:5px;background:var(--hover);color:inherit;font-weight:650;cursor:pointer;}
+.setup-primary-action[hidden]{display:none!important;}
+.setup-install-help{font-size:9.8px;line-height:1.45;opacity:.69;max-width:480px;margin-top:8px;}
+.setup-wizard-nav{flex:0 0 auto;display:grid;grid-template-columns:74px 1fr 74px;gap:9px;align-items:center;padding:10px 14px;border-top:1px solid var(--border);background:var(--panel);}
+.setup-wizard-nav button{min-height:30px;border:1px solid var(--border);background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));color:inherit;border-radius:4px;cursor:pointer;}
+.setup-wizard-nav button:disabled{opacity:.4;cursor:default;}
+#onboardingProgress{text-align:center;}
+#onboardingFooterNote{display:none!important;}
+
+/* Diagnostics is now strictly repair/history; let the history table use the freed update space. */
+.repair-updates-area{display:none!important;}
+.repair-modal{
+  height:min(760px,calc(100vh - 8px))!important;
+  grid-template-rows:auto auto 265px auto minmax(245px,1fr)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  align-content:start!important;
+}
+.repair-audit-area{min-height:245px!important;height:245px!important;margin-bottom:12px!important;}
+#repairSaveAudit{min-height:190px!important;height:auto!important;overflow:auto!important;}
+@media(max-height:610px){
+  .setup-wizard-dialog{height:calc(100vh - 8px)!important;}
+  .setup-wizard-page .how-to-illustration{height:185px;}
+  .repair-modal{grid-template-rows:auto auto 225px auto 215px!important;}
+  .repair-audit-area{min-height:215px!important;height:215px!important;}
+  #repairSaveAudit{min-height:160px!important;}
+}
+
+/* v0.10.139 — split visible archive from LocalAppData catalogue/internal state. */
+
+
+/* v0.10.140 — restored theme picker, fixed storage locations, and finished history table. */
+.theme-picker{margin-top:5px;}
+.theme-picker button{min-height:29px;}
+#storageLocationsSection .storage-open-btn{margin-top:0;margin-bottom:8px;}
+#storageLocationsSection .storage-data-label{margin-top:4px;}
+#repairSaveAudit{box-sizing:border-box!important;border:1px solid var(--border)!important;border-bottom:1px solid var(--border)!important;}
+.repair-audit-table{margin:0!important;}
+.repair-audit-table tr:last-child td{border-bottom:1px solid var(--border)!important;}
+
+/* v0.10.141 — safe %USERPROFILE% storage root + non-destructive v0.10.140 archive recovery. */
+
+
+/* v0.10.151 compact Settings and active-backup controls */
+#backupsSection .backup-primary-actions{margin-top:5px;margin-bottom:1px}
+#cancelBackup:not([hidden]){display:block}
+#cancelBackup[hidden]{display:none!important}
+.support-actions-row{margin-top:7px}
+#aboutSupportSection .version-easter-egg{margin-bottom:4px}
+#thumbnailSection .settings-actions{margin-top:5px}
+
+/* v0.10.152 — denser settings layout with half-row controls and grouped one-off actions. */
+#settingsPanel .settings-scroll{padding:1px 10px 9px}
+#settingsPanel .settings-section{padding:7px 0}
+#settingsPanel .section-title{margin-bottom:5px}
+#settingsPanel .theme-picker{margin-top:2px}
+#settingsPanel .theme-picker button{min-height:27px}
+
+.compact-setting-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:7px;
+  align-items:stretch;
+  padding:4px 0;
+}
+.compact-setting-row + .compact-setting-row{border-top:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+.compact-setting-copy{min-width:0;display:flex;flex-direction:column;justify-content:center}
+.compact-setting-copy .field-label{margin:0 0 2px;font-size:10.5px}
+.compact-path{font-size:9.5px;line-height:1.25;opacity:.72;word-break:break-all;min-width:0}
+.compact-subtext{font-size:9px;line-height:1.25;opacity:.68;margin-top:1px}
+#settingsPanel .half-row-control{
+  width:100%;
+  min-width:0;
+  min-height:31px;
+  height:100%;
+  margin:0;
+  align-self:stretch;
+}
+#settingsPanel select.half-row-control{padding:4px 6px}
+.compact-section-note{margin-top:3px!important}
+
+#backupsSection .backup-primary-actions{margin-top:5px!important;margin-bottom:0!important}
+.compact-action-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px!important}
+.compact-action-grid>button{width:100%;min-width:0;min-height:27px;margin:0;text-align:center}
+#backupsSection #cancelBackup:not([hidden]){grid-column:1/-1;display:block}
+#backupsSection #cancelBackup[hidden]{display:none!important}
+#backupsSection .backup-explainer{margin-top:4px!important}
+
+#thumbnailSection .favicon-actions{margin-top:0}
+#thumbnailSection #thumbnailGenerationStatus{margin-top:4px!important}
+
+.compact-actions-section{padding-bottom:6px!important}
+.quick-actions-grid{margin-top:1px}
+.quick-actions-grid #openUninstallComponents{border-color:color-mix(in srgb,#c44 55%,var(--border))}
+
+.settings-meta-footer{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 0 1px;
+  border-top:1px solid var(--border);
+  font-size:9px;
+  line-height:1.25;
+  opacity:.62;
+}
+.settings-meta-footer span:last-child{text-align:right}
+
+/* Supersede the older full-width storage/action spacing. */
+#storageLocationsSection .storage-open-btn{margin:0}
+#storageLocationsSection .storage-data-label{margin:0}
+#backupLimit{margin-bottom:0}
+.backup-limit-label{margin-top:0!important}
+.backup-retention-info{margin:0!important}
+.support-actions-row{margin-top:0}
+
+
+/* v0.10.153 — Settings correction and small UI polish. */
+.version-section .version-easter-egg{margin:0 0 3px!important;width:100%;text-align:left}
+
+/* Files & Data keeps a compact two-column layout, but its Open buttons use the
+   same standard control height as Actions rather than stretching to the row. */
+#storageLocationsSection .compact-setting-row{align-items:center;padding:4px 0}
+#storageLocationsSection .half-row-control{
+  min-height:27px!important;
+  height:27px!important;
+  align-self:center!important;
+}
+
+/* Backups intentionally uses the clearer stacked layout again. */
+#backupsSection .wide-btn{width:100%}
+#backupsSection #settingsChooseBackups{margin:5px 0 7px}
+#backupsSection #backupLimit{width:100%;margin-bottom:6px}
+#backupsSection .backup-limit-label{margin-top:2px!important}
+#backupsSection .backup-retention-info{margin:0 0 7px!important}
+#backupsSection .backup-primary-actions{display:flex!important;gap:6px!important;margin:5px 0 5px!important}
+#backupsSection .backup-primary-actions>button{flex:1 1 0;min-height:27px}
+#backupsSection #cancelBackup:not([hidden]){display:block!important}
+#backupsSection #importBackup{margin-top:0}
+
+/* The history area always has a visible lower edge, even when the list scrolls. */
+.repair-audit-area{box-sizing:border-box!important;padding-bottom:12px!important}
+#repairSaveAudit{
+  box-sizing:border-box!important;
+  border:1px solid var(--border)!important;
+  border-bottom:1px solid var(--border)!important;
+  border-radius:6px!important;
+  margin-bottom:0!important;
+  box-shadow:inset 0 -1px 0 var(--border);
+}
+
+/* Put the uninstall close control in the actual top-right corner. */
+.uninstall-components-dialog{position:relative!important;padding-top:12px!important}
+.uninstall-components-dialog>.zdest-title-row{padding-right:38px!important}
+#uninstallComponentsCloseX{
+  position:absolute!important;
+  top:6px!important;
+  right:6px!important;
+  margin:0!important;
+}
+
+
+/* v0.10.154 — centered Files & Data and consistent uninstall controls. */
+#storageLocationsSection .storage-centered-block{
+  text-align:center;
+  padding:4px 0 5px;
+}
+#storageLocationsSection .storage-centered-block + .storage-centered-block{
+  border-top:1px solid color-mix(in srgb,var(--border) 55%,transparent);
+  padding-top:8px;
+}
+#storageLocationsSection .storage-centered-block .field-label{
+  text-align:center;
+  margin:0 0 4px;
+}
+#storageLocationsSection .storage-path-display{
+  text-align:center;
+  margin:0 auto 5px;
+}
+#storageLocationsSection .storage-open-btn{
+  width:100%;
+  min-height:27px;
+  margin:0;
+}
+
+.uninstall-component-list > div{
+  grid-template-columns:minmax(0,1fr) 92px!important;
+  align-items:center!important;
+}
+.uninstall-component-list > div > button,
+.uninstall-component-list > div > .manual-badge{
+  box-sizing:border-box!important;
+  width:92px!important;
+  min-width:92px!important;
+  height:30px!important;
+  min-height:30px!important;
+  padding:4px 8px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+  margin:0!important;
+}
+
+
+/* v0.10.155 — manual-only backups and clearer Files & Data labels. */
+#storageLocationsSection .storage-centered-block .field-label{
+  text-align:left!important;
+  width:100%;
+}
+#backupsSection .backup-last-info{
+  margin:0 0 7px!important;
+}
+
+
+/* v0.10.156 — two-column Files & Data and exact 1–50 backup retention. */
+#storageLocationsSection .storage-two-column-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:7px!important;
+  align-items:stretch!important;
+}
+#storageLocationsSection .storage-half-block{
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding:0!important;
+  border:0!important;
+  text-align:left!important;
+}
+#storageLocationsSection .storage-half-block .field-label{
+  width:100%!important;
+  margin:0 0 3px!important;
+  text-align:left!important;
+}
+#storageLocationsSection .storage-path-display{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0 0 5px!important;
+  padding:5px 6px!important;
+  text-align:left!important;
+  line-height:1.25!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+  flex:1 1 auto!important;
+}
+#storageLocationsSection .storage-open-btn{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:27px!important;
+  height:27px!important;
+  margin:0!important;
+  padding:4px 8px!important;
+}
+#backupsSection .backup-limit-number{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:30px!important;
+  margin:0 0 6px!important;
+  padding:4px 8px!important;
+  color:var(--fg)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  border:1px solid var(--border)!important;
+  border-radius:4px!important;
+  font:inherit!important;
+}
+
+
+/* v0.10.157 — compact Files & Data buttons and guarded backup-retention changes. */
+#storageLocationsSection .storage-two-button-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:7px!important;
+}
+#storageLocationsSection .storage-two-button-row .storage-open-btn{
+  width:100%!important;
+  height:30px!important;
+  min-height:30px!important;
+  margin:0!important;
+  padding:4px 8px!important;
+}
+
+
+/* v0.10.158 — consistent Settings controls and ZIP-backup UI. */
+#settingsPanel button:not(.locero-close-x):not(.version-easter-egg){
+  box-sizing:border-box!important;
+  height:27px!important;
+  min-height:27px!important;
+  padding-top:3px!important;
+  padding-bottom:3px!important;
+}
+#settingsPanel .storage-one-button-row{display:grid!important;grid-template-columns:1fr!important;gap:0!important}
+#settingsPanel .storage-one-button-row .storage-open-btn{width:100%!important;height:27px!important;min-height:27px!important;margin:0!important}
+#settingsPanel .storage-two-button-row .storage-open-btn{height:27px!important;min-height:27px!important}
+#backupsSection .backup-limit-summary-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+#settingsPanel .wide-btn{height:27px!important;min-height:27px!important}
+#settingsPanel .compact-action-grid>button{height:27px!important;min-height:27px!important}
+#settingsPanel .backup-primary-actions>button{height:27px!important;min-height:27px!important}
+#settingsPanel .theme-picker button{height:27px!important;min-height:27px!important}
+
+#topActions .open-downloads{width:auto;min-width:72px;padding:0 7px;font-size:10px;border-left:1px solid var(--border);white-space:nowrap;display:flex!important;align-items:center;justify-content:center;flex-wrap:nowrap}
+
+/* Three equal diagnostic utility buttons, with the database action alongside the debug tools. */
+#repairModal .repair-toolbar{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+#repairModal .repair-toolbar>button{width:100%!important;min-width:0!important}
+#repairModal #repairScanSummary{grid-column:1/-1!important}
+
+/* v0.10.169 — clear Local Storage / optional WebDAV Cloud Backup settings. */
+#localStorageSection .storage-intro,
+#webdavBackupSection .cloud-backup-intro{margin-bottom:7px}
+#localStorageSection .storage-path{overflow-wrap:anywhere;word-break:break-word}
+#settingsPanel .two-equal-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important;margin-top:6px!important}
+#settingsPanel .two-equal-actions>button{width:100%!important;min-width:0!important}
+#settingsPanel .settings-text-input{
+  box-sizing:border-box;width:100%;height:29px;min-height:29px;margin:0 0 6px;padding:5px 7px;
+  border:1px solid var(--border);border-radius:3px;background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));
+  color:inherit;font:inherit;font-size:11px;outline:none
+}
+#settingsPanel .settings-text-input:focus,#settingsPanel select:focus{border-color:color-mix(in srgb,var(--accent) 72%,var(--border));box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 24%,transparent)}
+#webdavBackupSection select{margin-bottom:6px}
+#webdavBackupSection #webdavServerRow[hidden],#webdavDisconnectedView[hidden],#webdavConnectedView[hidden]{display:none!important}
+#webdavBackupSection #webdavProviderHelp{margin:1px 0 6px}
+#webdavBackupSection .cloud-connection-card{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;
+  border:1px solid color-mix(in srgb,var(--accent) 45%,var(--border));border-radius:4px;
+  background:color-mix(in srgb,var(--accent) 9%,var(--panel))
+}
+#webdavBackupSection .cloud-connection-card>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+#webdavBackupSection .cloud-connection-card strong{font-size:11px}
+#webdavBackupSection #webdavConnectedAccount{font-size:9.5px;opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#webdavBackupSection .cloud-connected-badge{flex:0 0 auto;font-size:9px;font-weight:650;padding:2px 5px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,transparent)}
+#webdavBackupSection .cloud-backup-time{margin-top:6px}
+#webdavBackupSection .cloud-backup-error{margin-top:6px}
+#maintenanceSection .maintenance-actions{grid-template-columns:1fr 1fr!important}
+#maintenanceSection #scanRepair{grid-column:1/-1}
+#versionSection .about-actions{margin-top:6px;grid-template-columns:1fr 1fr!important}
+#versionSection #openUninstallComponents{grid-column:1/-1}
+#onboardingModal .cloud-mark{font-size:25px;line-height:1}
+
+/* v0.10.170 — restore the compact Settings structure and group both backup
+   systems under disclosure rows. These selectors intentionally override the
+   legacy fixed Settings-button height used by ordinary actions. */
+#backupsSection .backup-disclosure-list{display:grid;grid-template-columns:1fr;gap:7px;margin-top:2px}
+#backupsSection .backup-disclosure-item{border:1px solid var(--border);border-radius:4px;overflow:hidden;background:color-mix(in srgb,var(--panel-fg) 3%,var(--panel))}
+#settingsPanel #backupsSection button.backup-disclosure-toggle{
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:50px!important;
+  margin:0!important;
+  padding:8px 9px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  text-align:left!important;
+  white-space:normal!important;
+}
+#settingsPanel #backupsSection button.backup-disclosure-toggle:hover{background:var(--hover)!important}
+#settingsPanel #backupsSection .backup-disclosure-copy{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;min-width:0!important;flex:1 1 auto!important}
+#settingsPanel #backupsSection .backup-disclosure-copy strong{font-size:10.7px;line-height:1.2;font-weight:650}
+#settingsPanel #backupsSection .backup-disclosure-copy>span{font-size:9.3px;line-height:1.3;opacity:.7;white-space:normal!important}
+#settingsPanel #backupsSection .backup-disclosure-chevron{font-size:13px;line-height:1;opacity:.75;flex:0 0 auto}
+#backupsSection .backup-disclosure-details{padding:8px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--panel-fg) 2%,var(--panel))}
+#backupsSection .backup-disclosure-details[hidden]{display:none!important}
+#backupsSection .backup-disclosure-details .field-label:first-child{margin-top:0}
+#backupsSection #webdavBackupSection .cloud-backup-intro{margin-top:0!important}
+#backupsSection #webdavBackupSection .cloud-connection-card{margin-top:0}
+#localStorageSection .local-storage-actions{margin-top:6px!important}
+
+/* v0.10.171 — theme near the top, compact Actions, and Favicons dialog. */
+#settingsPanel #appearanceSection{margin-top:0}
+#quickActionsSection .uninstall-action-wide{
+  box-sizing:border-box!important;width:100%!important;margin-top:6px!important;
+  border-color:color-mix(in srgb,#c44 60%,var(--border))!important;
+}
+#faviconsDialog .favicons-dialog{max-width:320px}
+#faviconsDialog .favicons-dialog-intro{margin:2px 0 9px}
+#faviconsDialog .favicons-dialog-actions{display:grid!important;grid-template-columns:1fr!important;gap:6px!important}
+#faviconsDialog .favicons-dialog-actions button{width:100%!important;min-height:31px!important}
+#faviconsDialog #thumbnailGenerationStatus{margin-top:8px}
+#faviconsDialog .favicons-dialog-intro{margin:8px 10px 6px!important}
+#faviconsDialog .favicons-dialog-actions{margin:0 10px}
+#faviconsDialog .favicons-dialog-actions button{
+  border:1px solid var(--border);background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));
+  color:inherit;border-radius:3px;padding:5px 8px;cursor:pointer;font-size:11px;
+}
+#faviconsDialog .favicons-dialog-actions button:hover{background:var(--hover)}
+#faviconsDialog #thumbnailGenerationStatus{margin:8px 10px 10px!important}
+
+
+/* v0.10.172 — one always-visible optional Cloud Backup section. */
+#backupsSection #webdavBackupSection.cloud-backup-static{
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+#backupsSection #webdavBackupSection .cloud-backup-intro{margin:0 0 7px!important}
+/* Give Diagnostics & Repair the same prominent close affordance as the large dialogs. */
+#repairModal #repairCloseX{
+  width:40px!important;min-width:40px!important;max-width:40px!important;
+  height:40px!important;min-height:40px!important;flex:0 0 40px!important;
+  font-size:29px!important;
+}
+
+/* v0.10.173 — safe reconnects, stateless manual backups, and explicit restore inputs. */
+#backupsSection #webdavBackupSection.cloud-backup-static{padding:8px!important;border-top:1px solid var(--border)!important;background:color-mix(in srgb,var(--panel-fg) 2%,var(--panel))!important}
+#backupsSection #webdavRestore,#backupsSection #importBackup{border-color:var(--border)!important}
+#backupsSection .manual-backup-intro{margin:0 0 7px!important}
+#backupsSection .backup-explainer{margin-top:6px!important}
+#backupsSection .backup-primary-actions{display:grid!important;grid-template-columns:1fr!important;gap:5px!important}
+#backupsSection .backup-primary-actions:has(#cancelBackup:not([hidden])){grid-template-columns:minmax(0,1fr) auto!important}
+#webdavBackupSection .cloud-reconnect-note{margin:0 0 7px!important;padding:7px;border:1px solid var(--border);border-radius:4px;background:color-mix(in srgb,var(--accent) 7%,var(--panel))}
+#webdavBackupSection .cloud-safety-hold{display:flex;flex-direction:column;gap:5px;margin-top:7px;padding:8px;border:1px solid var(--border);border-radius:4px;background:color-mix(in srgb,var(--accent) 7%,var(--panel));font-size:9.6px;line-height:1.35}
+#webdavBackupSection .cloud-safety-hold[hidden]{display:none!important}
+#webdavBackupSection .cloud-safety-hold strong{font-size:10.5px}
+#webdavBackupSection .cloud-safety-actions{margin-top:2px!important}
+#restoreBackupSection .restore-backup-intro{margin-bottom:7px!important;line-height:1.38}
+#restoreBackupSection .restore-backup-actions{margin-top:0!important}
+#restoreBackupSection .restore-backup-actions>button{height:auto!important;min-height:34px!important;white-space:normal!important;line-height:1.2!important}
+
+
+/* v0.10.174 — Cloud Backup configuration stays directly in Settings;
+   Manual Backup UI removed; Restore Cloud Backup is a separate section below. */
+#backupsSection #webdavBackupSection.cloud-backup-static{
+  padding:0!important;border:0!important;background:transparent!important;
+}
+#backupsSection #webdavBackupSection .cloud-backup-intro{margin:0 0 7px!important}
+#restoreBackupSection .restore-backup-actions{grid-template-columns:1fr 1fr!important}
+
+/* v0.10.175 — one Cloud Backup section with two disclosure rows. */
+#backupsSection .cloud-backup-disclosures{margin-top:2px}
+#backupsSection .backup-disclosure-right{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+#backupsSection .backup-disclosure-item.cloud-config-connected{
+  border-color:color-mix(in srgb,#2e8b57 72%,var(--border));
+  box-shadow:0 0 0 1px color-mix(in srgb,#2e8b57 10%,transparent)
+}
+#backupsSection .backup-disclosure-item.cloud-config-connected>button.backup-disclosure-toggle{
+  background:color-mix(in srgb,#2e8b57 5%,var(--panel))!important
+}
+#backupsSection .backup-disclosure-item.is-open .backup-disclosure-chevron{transform:rotate(90deg)}
+#backupsSection .backup-disclosure-chevron{transition:transform .12s ease}
+#backupsSection #webdavBackupSection{padding:0!important;border:0!important;background:transparent!important}
+#backupsSection #webdavBackupSection .cloud-backup-intro{margin:0 0 7px!important}
+#backupsSection .cloud-safety-file-restore-note{margin-top:1px!important}
+#backupsSection #cloudRestoreFileDetails .restore-backup-intro{margin:0 0 7px!important;line-height:1.38}
+#backupsSection #cloudRestoreFileDetails .wide-btn{width:100%!important}
+
+/* v0.10.176 — connected cloud configuration row replaces its label with CONNECTED. */
+#backupsSection .backup-disclosure-item.cloud-config-connected #cloudConfigureLabel{
+  letter-spacing:.035em;
+}
+
+/* v0.10.180 — one always-visible Cloud Backup view. */
+#backupsSection .cloud-backup-one-view{margin-top:2px}
+#backupsSection .cloud-backup-one-view .cloud-backup-intro{margin:0 0 7px!important}
+#backupsSection .cloud-connection-status-card{
+  border-color:color-mix(in srgb,#2e8b57 72%,var(--border))!important;
+  background:color-mix(in srgb,#2e8b57 6%,var(--panel))!important;
+  box-shadow:0 0 0 1px color-mix(in srgb,#2e8b57 8%,transparent);
+}
+#backupsSection .cloud-connected-title{letter-spacing:.045em;font-weight:700!important}
+#backupsSection #webdavConnectedSummary{font-size:9.5px;opacity:.74;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#backupsSection .cloud-restore-inline{margin-top:9px}
+#backupsSection .cloud-restore-divider{height:1px;background:var(--border);margin:0 0 8px}
+#backupsSection .cloud-subsection-title{font-size:10.7px;font-weight:650;margin:0 0 5px}
+#backupsSection .cloud-restore-inline .restore-backup-intro{margin:0 0 7px!important;line-height:1.38}
+#backupsSection .cloud-restore-inline .wide-btn{width:100%!important}
+
+
+/* v0.10.181 — compact direct cloud backup/restore controls. */
+#backupsSection .cloud-backup-primary-actions{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;margin-top:7px!important;
+}
+#backupsSection .cloud-backup-primary-actions button{min-width:0!important;width:100%!important}
+#backupsSection .cloud-disconnect-wide{
+  box-sizing:border-box!important;width:100%!important;margin-top:6px!important;
+}
+
+
+/* v0.10.186 — safer cloud actions menu and Locero-owned dialogs. */
+#backupsSection .cloud-backup-primary-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 34px!important;
+  gap:6px!important;
+  margin-top:7px!important;
+  position:relative;
+  align-items:stretch;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow{width:100%!important;min-width:0!important}
+#backupsSection .cloud-backup-menu-wrap{position:relative;min-width:0}
+#backupsSection .cloud-backup-more-button{
+  width:34px!important;min-width:34px!important;height:100%!important;min-height:26px!important;
+  padding:0!important;font-size:18px!important;line-height:1!important;font-weight:700;letter-spacing:1px;
+}
+#backupsSection .cloud-backup-more-menu{
+  position:absolute;right:0;top:calc(100% + 4px);z-index:5200;
+  width:205px;padding:4px;background:var(--panel);border:1px solid var(--border);border-radius:5px;
+  box-shadow:0 9px 24px rgba(0,0,0,.34);display:grid;gap:3px;
+}
+#backupsSection .cloud-backup-more-menu[hidden]{display:none!important}
+#backupsSection .cloud-backup-more-menu button{
+  width:100%!important;min-width:0!important;text-align:left!important;padding:6px 8px!important;
+}
+#backupsSection .cloud-backup-more-menu button:hover:not(:disabled){background:var(--hover)!important}
+
+.locero-dialog{width:min(430px,calc(100vw - 28px));max-height:min(430px,calc(100vh - 28px))}
+.locero-dialog .zdest-header h3{margin:0;font-size:13px;font-weight:650}
+.locero-dialog-body{padding:12px 12px 9px;overflow:auto}
+.locero-dialog-message{font-size:11.5px;line-height:1.48;white-space:pre-line;overflow-wrap:anywhere}
+.locero-dialog-input-wrap{display:grid;gap:5px;margin-top:11px;font-size:10.5px;font-weight:600}
+.locero-dialog-input-wrap[hidden]{display:none!important}
+.locero-dialog-input-wrap input{
+  width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:4px;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));color:inherit;padding:6px 7px;font:inherit;font-weight:400;
+}
+.locero-dialog-input-wrap input:focus{outline:1px solid currentColor;outline-offset:1px}
+.locero-dialog-buttons button{min-width:82px}
+.locero-dialog-buttons .dialog-danger-action{border-color:color-mix(in srgb,#d84a4a 75%,var(--border));}
+.locero-dialog-buttons .dialog-danger-action:hover{background:color-mix(in srgb,#d84a4a 15%,var(--panel));}
+
+
+/* v0.10.187 — combine connected state with the primary Cloud Backup action. */
+#backupsSection .cloud-connected-summary{
+  margin:0 0 5px!important;
+  font-size:9.5px!important;
+  opacity:.76;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button{
+  border-color:color-mix(in srgb,#2e8b57 78%,var(--border))!important;
+  background:color-mix(in srgb,#2e8b57 7%,var(--panel))!important;
+  box-shadow:0 0 0 1px color-mix(in srgb,#2e8b57 8%,transparent);
+  font-weight:650!important;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button:hover:not(:disabled){
+  background:color-mix(in srgb,#2e8b57 12%,var(--panel))!important;
+}
+
+
+/* v0.10.188 — provider/account inside the connected backup action; server-confirmed run summary below. */
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:2px!important;height:auto!important;min-height:39px!important;padding:5px 8px!important;line-height:1.16!important;
+}
+#backupsSection .cloud-backup-action-label{font-size:10.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#backupsSection .cloud-backup-action-account{font-size:9px;font-weight:500;opacity:.76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#backupsSection #webdavLastBackup.cloud-backup-time{margin:6px 0 0!important;padding:0!important;background:transparent!important;border:0!important;font-size:9.5px!important;opacity:.78}
+#backupsSection .cloud-backup-last-run{margin:3px 0 0!important;font-size:9.2px!important;line-height:1.3!important;opacity:.78}
+#backupsSection .cloud-connected-summary{display:none!important}
+
+
+/* v0.10.189 — UI consistency and fully editable local keyboard shortcuts. */
+#backupsSection .cloud-backup-menu-wrap{
+  align-self:stretch!important;
+  height:auto!important;
+  display:flex!important;
+}
+#backupsSection .cloud-backup-more-button{
+  align-self:stretch!important;
+  height:auto!important;
+  min-height:39px!important;
+  flex:1 1 auto!important;
+}
+
+/* Diagnostics & Repair uses the same button/select treatment as Settings. */
+#repairModal button:not(.locero-close-x),
+#repairModal select{
+  -moz-appearance:none;
+  appearance:none;
+  border:1px solid var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+  border-radius:3px!important;
+  padding:4px 7px!important;
+  cursor:pointer;
+  font-size:11px!important;
+  min-height:27px!important;
+  box-shadow:none!important;
+}
+#repairModal button:not(.locero-close-x):hover:not(:disabled){background:var(--hover)!important}
+#repairModal button:disabled,#repairModal select:disabled{opacity:.55;cursor:default}
+#repairModal .repair-card-actions button,#repairModal .repair-card-actions select{font-size:10px!important;min-height:27px!important}
+#repairModal #repairClearAudit{min-height:27px!important}
+
+/* The history grid has a definite visual bottom edge even when it contains one row. */
+#repairSaveAudit{border-bottom:1px solid var(--border)!important}
+#repairSaveAudit .repair-audit-table{border-bottom:1px solid var(--border)!important}
+#repairSaveAudit .repair-audit-table tbody tr:last-child td{border-bottom:1px solid var(--border)!important}
+
+/* Zotero migration icon controls match Locero dialogs; refresh is intentionally easier to hit. */
+.zmig-dialog .locero-close-x{
+  width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;
+  font-size:25px!important;
+}
+.zmig-top-actions{grid-template-columns:100px 100px minmax(0,1fr) 38px!important}
+.zmig-refresh-icon{
+  width:38px!important;min-width:38px!important;height:34px!important;min-height:34px!important;
+  font-size:27px!important;line-height:1!important;border-radius:4px!important;
+}
+.zmig-refresh-icon:hover,.zmig-refresh-icon:focus-visible{background:var(--hover)!important;opacity:1!important}
+
+.shortcut-top-actions{
+  display:flex;justify-content:flex-end;align-items:center;
+  padding:0 12px 8px;flex:0 0 auto;
+}
+.shortcut-top-actions button,
+.shortcut-edit-actions button,
+.shortcut-row-edit{
+  border:1px solid var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;border-radius:3px!important;
+}
+.shortcut-top-actions button{min-height:27px;padding:4px 9px;font-size:11px}
+.shortcut-top-actions button:hover,.shortcut-edit-actions button:hover,.shortcut-row-edit:hover{background:var(--hover)!important}
+.shortcut-rows{max-height:365px}
+
+
+/* v0.10.190 — shortcut values are the edit controls; migration/cloud polish. */
+.shortcut-top-actions{
+  justify-content:flex-start!important;
+}
+.shortcut-row{
+  grid-template-columns:minmax(0,1fr) 170px!important;
+  gap:8px!important;
+}
+.shortcut-row-value.shortcut-row-edit{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  height:24px!important;
+  padding:0 8px!important;
+  text-align:left!important;
+  font-family:ui-monospace,"Cascadia Mono",monospace!important;
+  font-size:10.5px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  cursor:pointer!important;
+}
+.shortcut-row-value.shortcut-row-edit:hover,
+.shortcut-row-value.shortcut-row-edit.keyboard-current,
+.shortcut-row-value.shortcut-row-edit:focus-visible{
+  background:var(--hover)!important;
+}
+
+/* Keep a lower rule visibly pinned to Save & Migration History even while it scrolls. */
+#repairSaveAudit{
+  position:relative!important;
+  border-bottom:1px solid var(--border)!important;
+}
+#repairSaveAudit::after{
+  content:"";
+  position:sticky;
+  display:block;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:1px;
+  margin-top:-1px;
+  background:var(--border);
+  pointer-events:none;
+  z-index:4;
+}
+#repairSaveAudit .repair-audit-table{
+  border-collapse:separate!important;
+  border-spacing:0!important;
+  border-bottom:1px solid var(--border)!important;
+}
+#repairSaveAudit .repair-audit-table tbody tr:last-child td{
+  border-bottom:1px solid var(--border)!important;
+}
+
+/* Zotero Migration primary controls use the same neutral button treatment as Settings. */
+.zmig-top-actions>#zoteroSelectAll,
+.zmig-top-actions>#zoteroSelectNone,
+.zmig-top-actions .zmig-destination-button,
+.zmig-dialog>.zdest-buttons button,
+.zmig-destination-confirm-actions button,
+.zmig-refresh-icon{
+  -moz-appearance:none!important;
+  appearance:none!important;
+  border:1px solid var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+  border-radius:3px!important;
+  box-shadow:none!important;
+}
+.zmig-top-actions>#zoteroSelectAll:hover:not(:disabled),
+.zmig-top-actions>#zoteroSelectNone:hover:not(:disabled),
+.zmig-top-actions .zmig-destination-button:hover:not(:disabled),
+.zmig-dialog>.zdest-buttons button:hover:not(:disabled),
+.zmig-destination-confirm-actions button:hover:not(:disabled),
+.zmig-refresh-icon:hover:not(:disabled),
+.zmig-refresh-icon:focus-visible{
+  background:var(--hover)!important;
+}
+.zmig-refresh-icon{
+  width:38px!important;
+  min-width:38px!important;
+  height:34px!important;
+  min-height:34px!important;
+  padding:0 0 2px!important;
+  font-size:30px!important;
+  line-height:1!important;
+  font-weight:400!important;
+}
+
+/* Connected Cloud Backup action uses Locero blue; overflow action matches its full height. */
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button{
+  border-color:color-mix(in srgb,#0b4f8a 82%,var(--border))!important;
+  background:#0b4f8a!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button:hover:not(:disabled){
+  background:#1264a3!important;
+}
+#backupsSection .cloud-backup-menu-wrap{
+  min-height:39px!important;
+  height:100%!important;
+}
+#backupsSection .cloud-backup-more-button{
+  box-sizing:border-box!important;
+  height:100%!important;
+  min-height:39px!important;
+  align-self:stretch!important;
+}
+
+
+/* v0.10.191 — requested cloud/migration/history alignment fixes. */
+/* Cloud Backup: same outlined/neutral treatment as the caution action, but blue instead of red. */
+#backupsSection .cloud-backup-primary-actions{
+  align-items:stretch!important;
+  grid-auto-rows:42px!important;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button{
+  box-sizing:border-box!important;
+  height:42px!important;
+  min-height:42px!important;
+  border-color:color-mix(in srgb,#1677c8 72%,var(--border))!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+  box-shadow:none!important;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button:hover:not(:disabled){
+  background:color-mix(in srgb,#1677c8 10%,var(--panel))!important;
+}
+#backupsSection .cloud-backup-menu-wrap{
+  box-sizing:border-box!important;
+  height:42px!important;
+  min-height:42px!important;
+  align-self:stretch!important;
+}
+#backupsSection .cloud-backup-more-button{
+  box-sizing:border-box!important;
+  height:42px!important;
+  min-height:42px!important;
+  align-self:stretch!important;
+}
+
+/* Save & Migration History: a real footer rule guarantees a visible table bottom edge. */
+#repairSaveAudit .repair-audit-table{
+  border-bottom:1px solid var(--border)!important;
+  box-shadow:inset 0 -1px 0 var(--border)!important;
+}
+#repairSaveAudit .repair-audit-table .audit-bottom-rule{
+  height:0!important;
+  line-height:0!important;
+  padding:0!important;
+  border:0!important;
+  border-bottom:1px solid var(--border)!important;
+}
+
+/* Zotero Migration: larger glyph, but exactly the same 30px button height as the controls to its left. */
+.zmig-refresh-icon{
+  height:30px!important;
+  min-height:30px!important;
+  width:38px!important;
+  min-width:38px!important;
+  padding:0 0 1px!important;
+  font-size:27px!important;
+  line-height:1!important;
+}
+
+/* v0.10.192 — make Save & Migration History a content-sized table instead of a tall empty pane. */
+#repairSaveAudit{
+  flex:0 1 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:190px!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+  border:1px solid var(--border)!important;
+  border-radius:4px!important;
+}
+/* The outer table frame supplies the single clean bottom edge. */
+#repairSaveAudit::after{display:none!important;content:none!important;}
+#repairSaveAudit .repair-audit-table{
+  margin:0!important;
+  border-bottom:0!important;
+  box-shadow:none!important;
+}
+#repairSaveAudit .repair-audit-table tbody tr:last-child td{
+  border-bottom:0!important;
+}
+#repairSaveAudit .repair-audit-table tfoot,
+#repairSaveAudit .repair-audit-table .audit-bottom-rule{
+  display:none!important;
+}
+
+
+/* v0.10.193 — make the Cloud Backup overflow control fill the complete action row height. */
+#backupsSection .cloud-backup-primary-actions .cloud-backup-menu-wrap{
+  position:relative!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  align-self:stretch!important;
+}
+#backupsSection .cloud-backup-primary-actions .cloud-backup-menu-wrap>#webdavMoreActions.cloud-backup-more-button{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:34px!important;
+  max-width:none!important;
+  height:42px!important;
+  min-height:42px!important;
+  max-height:42px!important;
+  margin:0!important;
+  padding:0!important;
+  align-self:stretch!important;
+}
+
+/* v0.10.195 — based on v0.10.194: Cloud Backup uses the normal neutral button treatment. */
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button{
+  border-color:var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+  box-shadow:none!important;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button:hover:not(:disabled){
+  border-color:var(--border)!important;
+  background:var(--hover)!important;
+}
+#quickActionsSection .uninstall-action-wide{
+  border-color:var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+}
+#quickActionsSection .uninstall-action-wide:hover:not(:disabled){
+  background:var(--hover)!important;
+}
+
+/* v0.10.197 — Cloud Backup confirmation-dialog baseline. */
+
+
+/* Save & Migration History: one and only one 1px frame. */
+#repairSaveAudit{
+  border:1px solid var(--border)!important;
+  border-width:1px!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+#repairSaveAudit::before,
+#repairSaveAudit::after{
+  content:none!important;
+  display:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+#repairSaveAudit .repair-audit-table{
+  border:0!important;
+  border-bottom:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+  border-collapse:collapse!important;
+}
+#repairSaveAudit .repair-audit-table tbody tr:last-child td,
+#repairSaveAudit .repair-audit-table tfoot,
+#repairSaveAudit .repair-audit-table .audit-bottom-rule{
+  border-bottom:0!important;
+  box-shadow:none!important;
+}
+
+
+/* v0.10.198 — consistent ellipsis/danger semantics and restored Zotero action colour. */
+#topActions .send-current-zotero{
+  background:#b3261e!important;
+  color:#fff!important;
+  border-left:1px solid color-mix(in srgb,#fff 18%,#b3261e)!important;
+  border-right:1px solid color-mix(in srgb,#000 25%,#b3261e)!important;
+}
+#topActions .send-current-zotero:hover:not(:disabled){background:#c7352c!important;}
+
+/* Danger buttons keep the normal Locero fill and use a restrained red border. */
+button.danger-subtle,
+.locero-dialog-buttons button.dialog-danger-action{
+  border-color:color-mix(in srgb,#d84a4a 78%,var(--border))!important;
+  background:color-mix(in srgb,#d84a4a 4%,var(--panel))!important;
+  color:inherit!important;
+  box-shadow:none!important;
+}
+button.danger-subtle:hover:not(:disabled),
+.locero-dialog-buttons button.dialog-danger-action:hover:not(:disabled){
+  border-color:color-mix(in srgb,#d84a4a 88%,var(--border))!important;
+  background:color-mix(in srgb,#d84a4a 14%,var(--panel))!important;
+  color:inherit!important;
+}
+
+/* Specific high-specificity surfaces that otherwise force neutral borders/fills. */
+#quickActionsSection .uninstall-action-wide.danger-subtle,
+#repairModal button.danger-subtle,
+#backupsSection .cloud-backup-more-menu button.danger-subtle,
+#uninstallComponentsModal button.danger-subtle,
+.shortcut-top-actions button.danger-subtle{
+  border-color:color-mix(in srgb,#d84a4a 78%,var(--border))!important;
+  background:color-mix(in srgb,#d84a4a 4%,var(--panel))!important;
+}
+#quickActionsSection .uninstall-action-wide.danger-subtle:hover:not(:disabled),
+#repairModal button.danger-subtle:hover:not(:disabled),
+#backupsSection .cloud-backup-more-menu button.danger-subtle:hover:not(:disabled),
+#uninstallComponentsModal button.danger-subtle:hover:not(:disabled),
+.shortcut-top-actions button.danger-subtle:hover:not(:disabled){
+  border-color:color-mix(in srgb,#d84a4a 88%,var(--border))!important;
+  background:color-mix(in srgb,#d84a4a 14%,var(--panel))!important;
+}
+
+/* The context menu is normally borderless; Delete is the one danger command. */
+.ctx button.danger-subtle{
+  border:1px solid color-mix(in srgb,#d84a4a 78%,var(--border))!important;
+  padding:5px 8px!important;
+}
+
+
+/* v0.10.199 — launcher/menu danger styling refinement.
+   Revert All, Clear History, the Settings uninstall launcher, and Cloud Backup menu commands
+   use the ordinary button treatment; destructive component actions keep danger styling. */
+
+
+/* v0.10.200 — requested neutral treatment for Cloud Backup and Uninstall Locero actions. */
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button,
+#uninstallComponentsModal #uninstallWindowsHelperBtn,
+#uninstallComponentsModal #uninstallFirefoxExtensionBtn{
+  border-color:var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+  box-shadow:none!important;
+}
+#backupsSection .cloud-backup-primary-actions>#webdavBackupNow.cloud-backup-connected-button:hover:not(:disabled),
+#uninstallComponentsModal #uninstallWindowsHelperBtn:hover:not(:disabled),
+#uninstallComponentsModal #uninstallFirefoxExtensionBtn:hover:not(:disabled){
+  border-color:var(--border)!important;
+  background:var(--hover)!important;
+  color:inherit!important;
+}
+
+
+/* v0.10.201 — Uninstall Locero component controls match ordinary Settings buttons. */
+#uninstallComponentsModal #uninstallWindowsHelperBtn,
+#uninstallComponentsModal #uninstallFirefoxExtensionBtn{
+  box-sizing:border-box!important;
+  width:92px!important;
+  min-width:92px!important;
+  height:27px!important;
+  min-height:27px!important;
+  padding:4px 7px!important;
+  border:1px solid var(--border)!important;
+  border-radius:3px!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;
+  color:inherit!important;
+  box-shadow:none!important;
+  font-size:11px!important;
+  font-weight:400!important;
+  line-height:1!important;
+  cursor:pointer!important;
+}
+#uninstallComponentsModal #uninstallWindowsHelperBtn:hover:not(:disabled),
+#uninstallComponentsModal #uninstallFirefoxExtensionBtn:hover:not(:disabled){
+  border-color:var(--border)!important;
+  background:var(--hover)!important;
+  color:inherit!important;
+}
+
+/* v0.10.202 — native Cloud Restore integrity fix; no additional UI styling. */
+
+
+/* v0.10.203 — Delete commands requested as ordinary neutral controls. */
+.ctx button.danger-subtle,
+#repairModal button.danger-subtle{
+  border-color:var(--border)!important;
+  background:transparent!important;
+  color:inherit!important;
+}
+.ctx button.danger-subtle:hover:not(:disabled),
+#repairModal button.danger-subtle:hover:not(:disabled){
+  border-color:var(--border)!important;
+  background:var(--hover)!important;
+  color:inherit!important;
+}
+
+
+/* v0.10.207 — visible Cloud Backup/Restore progress directly below the action row. */
+#backupsSection .cloud-backup-progress{
+  margin:7px 0 0!important;padding:7px 8px!important;
+  border:1px solid var(--border)!important;border-radius:4px!important;
+  background:color-mix(in srgb,var(--panel-fg) 3%,var(--panel))!important;
+}
+#backupsSection .cloud-backup-progress[hidden]{display:none!important}
+#backupsSection .cloud-backup-progress-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:9.7px;line-height:1.25;font-weight:650;
+}
+#backupsSection #webdavProgressPercent{font-variant-numeric:tabular-nums;opacity:.82;flex:0 0 auto}
+#backupsSection .cloud-backup-progress-track{
+  position:relative;height:8px;margin:7px 0 6px;overflow:hidden;
+  border:1px solid var(--border);border-radius:999px;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel));
+}
+#backupsSection .cloud-backup-progress-fill{
+  position:absolute;inset:0 auto 0 0;width:0%;border-radius:inherit;
+  background:var(--accent);transition:width .18s ease;
+}
+#backupsSection .cloud-backup-progress.is-indeterminate .cloud-backup-progress-fill{
+  width:38%!important;animation:locero-cloud-progress-indeterminate 1.05s ease-in-out infinite;
+}
+#backupsSection .cloud-backup-progress-detail{
+  min-height:1.25em;font-size:9.2px;line-height:1.35;opacity:.78;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;
+}
+@keyframes locero-cloud-progress-indeterminate{
+  0%{left:-38%}50%{left:45%}100%{left:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  #backupsSection .cloud-backup-progress.is-indeterminate .cloud-backup-progress-fill{animation:none;left:0}
+}
+
+
+/* v0.10.215 — per-worker progress lanes for concurrent WebDAV transfers. */
+#backupsSection .cloud-transfer-workers{
+  display:grid;gap:5px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);
+}
+#backupsSection .cloud-transfer-workers[hidden]{display:none!important}
+#backupsSection .cloud-transfer-worker{min-width:0}
+#backupsSection .cloud-transfer-worker-head{
+  display:grid;grid-template-columns:16px minmax(0,1fr) 32px;align-items:center;gap:5px;
+  margin-bottom:2px;font-size:8.8px;line-height:1.2;
+}
+#backupsSection .cloud-transfer-worker-slot{
+  display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  border:1px solid var(--border);border-radius:3px;font-size:8px;font-variant-numeric:tabular-nums;opacity:.78;
+}
+#backupsSection .cloud-transfer-worker-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.86}
+#backupsSection .cloud-transfer-worker-percent{text-align:right;font-variant-numeric:tabular-nums;opacity:.72}
+#backupsSection .cloud-transfer-worker-track{
+  position:relative;height:5px;overflow:hidden;border-radius:999px;
+  background:color-mix(in srgb,var(--panel-fg) 7%,var(--panel));
+}
+#backupsSection .cloud-transfer-worker-fill{
+  position:absolute;inset:0 auto 0 0;width:0%;border-radius:inherit;background:var(--accent);transition:width .14s linear;
+}
+#backupsSection .cloud-transfer-worker.is-indeterminate .cloud-transfer-worker-fill{
+  width:34%!important;animation:locero-worker-progress-indeterminate .95s ease-in-out infinite;
+}
+@keyframes locero-worker-progress-indeterminate{0%{left:-34%}50%{left:48%}100%{left:100%}}
+@media (prefers-reduced-motion:reduce){
+  #backupsSection .cloud-transfer-worker.is-indeterminate .cloud-transfer-worker-fill{animation:none;left:0}
+}
+
+/* Manual Backup mirrors the WebDAV primary action and overflow menu. */
+#manualBackupSection .cloud-backup-primary-actions{
+  display:grid!important;grid-template-columns:minmax(0,1fr) 34px!important;gap:6px!important;
+  margin:7px 0 0!important;position:relative;align-items:stretch!important;grid-auto-rows:54px!important;
+}
+#manualBackupSection .cloud-backup-connected-button{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:2px!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:54px!important;
+  padding:6px 8px!important;line-height:1.16!important;border-color:var(--border)!important;
+  background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))!important;color:inherit!important;
+}
+#manualBackupSection .cloud-backup-connected-button:hover:not(:disabled){border-color:var(--border)!important;background:var(--hover)!important}
+#manualBackupSection .cloud-backup-action-label{font-size:10.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#manualBackupSection .cloud-backup-action-account{font-size:9px;font-weight:500;opacity:.76;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#manualBackupSection .cloud-backup-menu-wrap{position:relative!important;display:block!important;box-sizing:border-box!important;height:54px!important;min-height:54px!important}
+#manualBackupSection .cloud-backup-more-button{position:absolute!important;inset:0!important;box-sizing:border-box!important;width:34px!important;min-width:34px!important;height:54px!important;padding:0!important;font-size:18px!important;line-height:1!important;font-weight:700}
+#manualBackupSection .cloud-backup-more-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:5200;width:205px;padding:4px;background:var(--panel);border:1px solid var(--border);border-radius:5px;box-shadow:0 9px 24px rgba(0,0,0,.34);display:grid;gap:3px}
+#manualBackupSection .cloud-backup-more-menu[hidden]{display:none!important}
+#manualBackupSection .cloud-backup-more-menu button{width:100%!important;min-width:0!important;text-align:left!important;padding:6px 8px!important}
+#manualBackupSection .cloud-backup-more-menu button:hover:not(:disabled){background:var(--hover)!important}
+#manualBackupSection #manualBackupResult{margin:5px 0 0!important;font-size:9.2px!important;line-height:1.3!important;opacity:.78}
+
+/* Manual Backup has its own progress card; native Backup events never use the WebDAV card. */
+#manualBackupSection .cloud-backup-progress{margin:3px 0 0!important;padding:7px 8px!important;border:1px solid var(--border)!important;border-radius:4px!important;background:color-mix(in srgb,var(--panel-fg) 3%,var(--panel))!important}
+#manualBackupSection .cloud-backup-progress[hidden]{display:none!important}
+#manualBackupSection .cloud-backup-progress-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9.7px;line-height:1.25;font-weight:650}
+#manualBackupSection #manualBackupProgressPercent{font-variant-numeric:tabular-nums;opacity:.82;flex:0 0 auto}
+#manualBackupSection .cloud-backup-progress-track{position:relative;height:8px;margin:7px 0 6px;overflow:hidden;border:1px solid var(--border);border-radius:999px;background:color-mix(in srgb,var(--panel-fg) 5%,var(--panel))}
+#manualBackupSection .cloud-backup-progress-fill{position:absolute;inset:0 auto 0 0;width:0%;border-radius:inherit;background:var(--accent);transition:width .18s ease}
+#manualBackupSection .cloud-backup-progress.is-indeterminate .cloud-backup-progress-fill{width:38%!important;animation:locero-cloud-progress-indeterminate 1.05s ease-in-out infinite}
+#manualBackupSection .cloud-backup-progress-detail{min-height:1.25em;font-size:9.2px;line-height:1.35;opacity:.78;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal}
+@media (prefers-reduced-motion:reduce){#manualBackupSection .cloud-backup-progress.is-indeterminate .cloud-backup-progress-fill{animation:none;left:0}}
+/* Keep the idle Manual Backup section close to Actions. The section returns to
+   normal spacing whenever progress or the completed-backup path is visible. */
+#manualBackupSection:has(#manualBackupProgress[hidden]):has(#manualBackupResult[hidden]){
+  padding-bottom:0!important;
+  margin-bottom:-18px!important;
+}
+#manualBackupSection:has(#manualBackupProgress[hidden]):has(#manualBackupResult[hidden])+#quickActionsSection{
+  padding-top:5px!important;
+}
+/* Coordinated Locero update status — all installed components use one tested build. */
+.locero-update-summary{font-weight:600;word-break:normal}
+.locero-update-components{display:grid;gap:3px;margin:4px 0 7px}
+.locero-update-component{display:grid;grid-template-columns:16px 1fr auto;gap:5px;align-items:center;font-size:10.5px;line-height:1.3;padding:2px 1px}
+.locero-update-component .locero-update-icon{font-weight:700;text-align:center}
+.locero-update-component .locero-update-version{opacity:.72;font-family:ui-monospace,Consolas,monospace}
+.locero-update-component.problem .locero-update-icon{font-weight:800}
+.locero-update-button{font-weight:600}
+
+/* Revised post-setup UX: no permanent Setup spanner; status bar spans full width. */
+#setupBtn{display:none!important;}
+#status{left:0!important;padding-left:6px!important;}
+.about-build-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px;padding:5px 6px;border-radius:4px;background:color-mix(in srgb,var(--panel-fg) 7%,var(--panel));}
+.about-build-number{font-size:11px;white-space:nowrap;}
+.about-update-side{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;}
+.about-update-status{font-size:10.5px;opacity:.8;white-space:nowrap;}
+.about-update-button{min-height:22px!important;padding:2px 7px!important;font-size:10.5px!important;white-space:nowrap;}

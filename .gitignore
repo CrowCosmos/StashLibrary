@@ -1,0 +1,9 @@
+# Build outputs
+Locero-Windows-Helper.exe
+windows-installer/installer/payload/LoceroNativeHelper.exe
+*.xpi
+*.zip
+web-ext-artifacts/
+__pycache__/
+*.pyc
+native/local_file_bookmarks.host.json
