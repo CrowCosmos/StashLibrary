@@ -5,9 +5,9 @@
 Locero is a tool for research and reading workflows. Save local PDF/HTML copies of reading material in a browser bookmark-style tree, with integration with Zotero. The aim is to create a more streamlined and manageable research experience.
 
 <p align="center">
-  <img src="locero-preview-dark.png" alt="Locero dark theme" width="30%">
-  <img src="locero-preview-export.png" alt="Locero export" width="30%">
-  <img src="locero-preview-settings.png" alt="Locero export" width="30%">
+  <img src="assets/locero-preview-dark.png" alt="Locero dark theme" width="30%">
+  <img src="assets/locero-preview-export.png" alt="Locero export" width="30%">
+  <img src="assets/locero-preview-settings.png" alt="Locero export" width="30%">
 
 
 ## Disclaimer
