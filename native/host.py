@@ -7156,7 +7156,10 @@ def _direct_save_pdf(url,browser_title,pdf_base64=None,pdf_file_name=None,target
     _connector_request(base,'saveItems',{'sessionID':session_id,'uri':session_uri,'items':[item]},timeout=60)
     _connector_request(base,'updateSession',{'sessionID':session_id,'target':target,'tags':[],'note':''},timeout=60)
     metadata={'sessionID':session_id,'parentItemID':parent_id,'title':title,'url':provenance_url or str(url or '')}
-    headers={'X-Metadata':json.dumps(metadata,ensure_ascii=False)}
+    # http.client encodes header values as Latin-1. Keep this JSON header ASCII-
+    # safe so titles/URLs containing curly quotes, dashes, or non-Latin text do
+    # not fail during transmission; JSON.parse restores the original Unicode.
+    headers={'X-Metadata':json.dumps(metadata,ensure_ascii=True)}
     _connector_request(base,'saveAttachment',content_type='application/pdf',raw_data=data,timeout=120,extra_headers=headers)
     return {'sessionID':session_id,'title':title,'fileName':file_name,'contentType':'application/pdf','selectedTargetID':target,'recognitionQueued':True,'sourceURL':provenance_url,'accessedAt':provenance_accessed}
 
