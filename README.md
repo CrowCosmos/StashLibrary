@@ -2,7 +2,7 @@
 
 ## About
 
-Locero is a Firefox Extension reading tool. It allows you to save bookmarks as PDF or HTML and also integrates with Zotero reference manager.
+Reading tool which allows you to save bookmarks as PDF or HTML. Also integrates with Zotero reference manager.
 
 ## Features
 
