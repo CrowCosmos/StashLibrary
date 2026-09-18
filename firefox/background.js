@@ -569,6 +569,13 @@ async function directSendCurrentToZotero(msg={}){
   const accessedAt=new Date().toISOString();
   const target=msg.target||'';
 
+  // A Locero viewer page is an archived bookmark, not a new live-page visit.
+  // Route it through the bookmark path so its SQL source/access date win.
+  if(/^http:\/\/127\.0\.0\.1:\d+\/view\//i.test(url)){
+    const archived=await nativeSend({cmd:'send_friendly_url_to_zotero',url,target},300000);
+    if(archived?.ok&&archived?.matched)return archived;
+  }
+
   if(/^file:/i.test(url)){
     archiveProgress('Send Current Page to Zotero','Importing the local file into Zotero',0);
     const r=await nativeSend({cmd:'zotero_direct_save',url,title,accessedAt,target},300000);

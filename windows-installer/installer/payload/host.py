@@ -4135,6 +4135,30 @@ def friendly_open_url(path,display_name=''):
     }
 
 
+def send_friendly_url_to_zotero(url,target=None):
+    """Send a registered Locero viewer URL using its catalogue metadata."""
+    try:parsed=urllib.parse.urlsplit(str(url or ''))
+    except Exception:return {'matched':False}
+    if parsed.scheme.lower()!='http' or parsed.hostname!=FRIENDLY_HTTP_HOST:
+        return {'matched':False}
+    try:port=parsed.port or 80
+    except ValueError:return {'matched':False}
+    if port!=FRIENDLY_HTTP_PORT or not parsed.path.startswith('/view/'):
+        return {'matched':False}
+    encoded_path=parsed.path;decoded_path=urllib.parse.unquote(encoded_path)
+    with FRIENDLY_HTTP_LOCK:
+        entry=(FRIENDLY_ROUTES.get(encoded_path) or FRIENDLY_ROUTES.get(decoded_path)
+               or FRIENDLY_ROUTES.get(urllib.parse.quote(decoded_path,safe='/')))
+        entry=dict(entry) if entry else None
+    if not entry:return {'matched':False}
+    node_id=entry.get('nodeID')
+    if node_id is not None and is_flat_layout():
+        ref=_with_db(lambda conn:_flat_ref_for_id(conn,int(node_id)))
+        if not ref:return {'matched':False}
+    else:ref=str(entry.get('path') or '')
+    return {'matched':True,**send_to_zotero(ref,target)}
+
+
 def _force_explorer_window_foreground(folder_name=''):
     if os.name!='nt':return
     try:
@@ -7146,22 +7170,32 @@ def _direct_save_pdf(url,browser_title,pdf_base64=None,pdf_file_name=None,target
         data,file_name=_direct_pdf_bytes(url,browser_title,pdf_base64,pdf_file_name)
     session_id='session-'+secrets.token_hex(12);parent_id='item-'+secrets.token_hex(12)
     title=str(browser_title or '').strip() or Path(file_name).stem or 'Document'
-    provenance_url=str(source_url if source_url is not None else url or '').strip()
+    provenance_url=_zotero_source_url(source_url if source_url is not None else url)
     provenance_accessed=str(accessed_at or '').strip()
     extra_lines=[PDF_MARKER]
     if provenance_url: extra_lines.append('LFB-Provenance-URL: '+provenance_url)
     if provenance_accessed: extra_lines.append('LFB-Provenance-Accessed: '+provenance_accessed)
     item={'id':parent_id,'itemType':'document','title':title,'creators':[],'tags':[],'attachments':[],'extra':'\n'.join(extra_lines)}
-    session_uri=provenance_url or str(url or '')
+    transport_url=provenance_url or ('' if local_path else str(url or ''))
+    session_uri=transport_url
     _connector_request(base,'saveItems',{'sessionID':session_id,'uri':session_uri,'items':[item]},timeout=60)
     _connector_request(base,'updateSession',{'sessionID':session_id,'target':target,'tags':[],'note':''},timeout=60)
-    metadata={'sessionID':session_id,'parentItemID':parent_id,'title':title,'url':provenance_url or str(url or '')}
+    metadata={'sessionID':session_id,'parentItemID':parent_id,'title':title,'url':transport_url}
     # http.client encodes header values as Latin-1. Keep this JSON header ASCII-
     # safe so titles/URLs containing curly quotes, dashes, or non-Latin text do
     # not fail during transmission; JSON.parse restores the original Unicode.
     headers={'X-Metadata':json.dumps(metadata,ensure_ascii=True)}
     _connector_request(base,'saveAttachment',content_type='application/pdf',raw_data=data,timeout=120,extra_headers=headers)
     return {'sessionID':session_id,'title':title,'fileName':file_name,'contentType':'application/pdf','selectedTargetID':target,'recognitionQueued':True,'sourceURL':provenance_url,'accessedAt':provenance_accessed}
+
+def _zotero_source_url(value):
+    """Return a bibliographic URL, never a private filesystem location."""
+    value=str(value or '').strip()
+    if not value:return ''
+    if re.match(r'^file:',value,re.I) or re.match(r'^[a-zA-Z]:[\\/]',value) or value.startswith('\\\\'):
+        return ''
+    return value
+
 
 def zotero_direct_save(url,title='',snapshot_html=None,pdf_base64=None,pdf_file_name=None,accessed_at=None,target=None):
     url=str(url or '').strip();title=str(title or '').strip()
@@ -7172,8 +7206,8 @@ def zotero_direct_save(url,title='',snapshot_html=None,pdf_base64=None,pdf_file_
         path=Path(_file_url_path(url))
         if not path.is_file():raise RuntimeError(f'Local file not found: {path}')
         low=path.suffix.lower()
-        if low=='.pdf':return _direct_save_pdf(url,title,target=target,accessed_at=accessed_at,source_url=url)
-        if low in {'.html','.htm'}:return _direct_save_webpage(url,title,local_html=path,accessed_at=accessed_at,target=target)
+        if low=='.pdf':return _direct_save_pdf(url,title,target=target,accessed_at=accessed_at,source_url='')
+        if low in {'.html','.htm'}:return _direct_save_webpage('',title,local_html=path,accessed_at=accessed_at,target=target)
         raise RuntimeError('Send direct to Zotero supports local PDF, HTML and HTM files.')
     if scheme in {'http','https'}:
         if snapshot_html:return _direct_save_webpage(url,title,snapshot_html=snapshot_html,accessed_at=accessed_at,target=target)
@@ -7663,7 +7697,7 @@ def send_to_zotero(path,target=None):
         meta=get_item_metadata(p)
         logical_title=str(meta.get('title') or '')
 
-    source_url=str(meta.get('sourceUrl') or '').strip()
+    source_url=_zotero_source_url(meta.get('sourceUrl'))
     accessed_at=str(meta.get('accessedAt') or '').strip()
     if not accessed_at:
         try:
@@ -7964,6 +7998,7 @@ def handle(m):
         elif cmd=='undo':res={'ok':True,**undo_action()}
         elif cmd=='redo':res={'ok':True,**redo_action()}
         elif cmd=='send_to_zotero':res={'ok':True,**send_to_zotero(m['path'],m.get('target'))}
+        elif cmd=='send_friendly_url_to_zotero':res={'ok':True,**send_friendly_url_to_zotero(m.get('url'),m.get('target'))}
         elif cmd=='send_current_page_to_zotero':res={'ok':True,**send_current_page_to_zotero(m.get('url'),m.get('title'),m.get('authors'),m.get('accessedAt'))}
         elif cmd=='zotero_direct_url':res={'ok':True,**zotero_direct_url(m.get('url'),m.get('title',''),m.get('authors') or [],m.get('accessedAt'),m.get('target'))}
         elif cmd=='zotero_direct_save':res={'ok':True,**zotero_direct_save(m.get('url'),m.get('title',''),m.get('snapshotHTML'),m.get('pdfBase64'),m.get('pdfFileName'),m.get('accessedAt'),m.get('target'))}

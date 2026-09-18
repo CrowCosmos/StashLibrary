@@ -129,9 +129,15 @@ function parsePDFProvenance(extra) {
     return out;
 }
 
+function bibliographicURL(value) {
+    value = String(value || "").trim();
+    if (/^file:/i.test(value) || /^[a-z]:[\\/]/i.test(value) || /^\\\\/.test(value)) return "";
+    return value;
+}
+
 async function applyPDFProvenance(item, provenance, label) {
     if (!item) return { url: "", accessDate: "" };
-    let url = String((provenance && provenance.url) || "").trim();
+    let url = bibliographicURL((provenance && provenance.url) || "");
     let accessDate = normalizeAccessDateForZotero((provenance && provenance.accessedAt) || "");
     if (url) item.setField("url", url);
     if (accessDate) item.setField("accessDate", accessDate);
@@ -519,7 +525,7 @@ function creatorFromArchiveName(name) {
 }
 
 async function importArchivedWebPage(path, sourceURL, accessedAt, archiveTitle, archiveAuthors) {
-    sourceURL = String(sourceURL || "").trim();
+    sourceURL = bibliographicURL(sourceURL);
     accessedAt = String(accessedAt || "").trim();
     archiveTitle = String(archiveTitle || "").trim();
     archiveAuthors = Array.isArray(archiveAuthors) ? archiveAuthors : [];
@@ -642,7 +648,7 @@ async function createFallbackPDFParent(attachment, title, sourceURL, accessedAt)
 
 async function importLocalFileToZotero(path, sourceURL, accessedAt, archiveTitle, archiveAuthors, displayTitle) {
     path = String(path || "");
-    sourceURL = String(sourceURL || "").trim();
+    sourceURL = bibliographicURL(sourceURL);
     accessedAt = String(accessedAt || "").trim();
     displayTitle = String(displayTitle || "").trim();
     if (!path) throw new Error("No local file path was supplied");
