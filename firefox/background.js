@@ -642,7 +642,14 @@ async function directSendCurrentToZotero(msg={}){
 
 
 const LOCERO_THUMBNAIL_KEY='loceroBookmarkThumbnails';
+const LOCERO_FAVICON_JOB_KEY='loceroFaviconRefreshJob';
 let faviconBatchRunning=false;
+
+async function publishFaviconProgress(payload){
+  const state={...payload,updatedAt:Date.now()};
+  await browser.storage.local.set({[LOCERO_FAVICON_JOB_KEY]:state}).catch(()=>{});
+  broadcast({type:'thumbnail-progress',payload:state});
+}
 
 async function readThumbnailCache(){
   try{
@@ -763,6 +770,7 @@ async function generateFaviconBatch(items=[],force=false){
     const cache=await readThumbnailCache();
     const jobs=(items||[]).filter(x=>x?.path&&(force||!cache[x.key||x.path]));
     let done=0,updated=0,unchanged=0,kept=0,missing=0;
+    await publishFaviconProgress({running:true,done,total:jobs.length,updated,unchanged,kept,missing,finished:false});
 
     for(const item of jobs){
       const key=item.key||item.path;
@@ -780,15 +788,24 @@ async function generateFaviconBatch(items=[],force=false){
       }
 
       done++;
-      broadcast({type:'thumbnail-progress',payload:{done,total:jobs.length,updated,unchanged,kept,missing,finished:false}});
+      await publishFaviconProgress({running:true,done,total:jobs.length,updated,unchanged,kept,missing,finished:false});
       await new Promise(r=>setTimeout(r,90));
     }
 
-    broadcast({type:'thumbnail-progress',payload:{done,total:jobs.length,updated,unchanged,kept,missing,finished:true}});
+    await publishFaviconProgress({running:false,done,total:jobs.length,updated,unchanged,kept,missing,finished:true});
     return {ok:true,done,total:jobs.length,updated,unchanged,kept,missing};
+  }catch(error){
+    await publishFaviconProgress({running:false,finished:true,error:error?.message||String(error)});
+    throw error;
   }finally{
     faviconBatchRunning=false;
   }
+}
+
+function startFaviconBatch(items=[],force=false){
+  if(faviconBatchRunning)return {ok:false,error:'Favicon refresh is already running.'};
+  generateFaviconBatch(items,force).catch(()=>{});
+  return {ok:true,started:true};
 }
 
 async function captureCurrentThumbnail(msg={}){
@@ -874,6 +891,7 @@ browser.runtime.onMessage.addListener((msg)=>{
     return {ok:true};
   })();
   if(msg?.type==='thumbnail-capture-current') return captureCurrentThumbnail(msg);
+  if(msg?.type==='thumbnail-start-batch') return Promise.resolve(startFaviconBatch(msg.items||[],!!msg.force));
   if(msg?.type==='thumbnail-generate-batch') return generateFaviconBatch(msg.items||[],!!msg.force);
   if(msg?.type==='native-send') return nativeSend(msg.payload);
   if(msg?.type==='locero-stage-windows-update') return stageLoceroWindowsUpdate(msg.url,msg.version);

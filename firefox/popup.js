@@ -271,9 +271,9 @@ async function runThumbnailGeneration(){
   const s=document.querySelector('#thumbnailGenerationStatus'),items=allBookmarkThumbnailJobs();
   if(s)s.textContent='Refreshing favicons — 0 of '+items.length+' websites checked';
   try{
-    const r=await browser.runtime.sendMessage({type:'thumbnail-generate-batch',items,force:true});
+    const r=await browser.runtime.sendMessage({type:'thumbnail-start-batch',items,force:true});
     if(!r?.ok)throw new Error(r?.error||'Favicon refresh failed.');
-    if(s)s.textContent='Favicon refresh complete — '+(r.updated||0)+' updated, '+(r.unchanged||0)+' unchanged, '+(r.kept||0)+' existing icons kept because their websites were unavailable'+(r.missing?', '+r.missing+' websites had no favicon available':'')+'.';
+    if(s)s.textContent='Refreshing favicons in the background — you can close Locero.';
   }catch(e){if(s)s.textContent='Favicon error — '+(e?.message||e)}
 }
 
@@ -5094,6 +5094,16 @@ document.querySelector('#openFaviconsDialog')?.addEventListener('click',()=>{
   const modal=document.querySelector('#faviconsDialog');
   if(!modal)return;
   modal.hidden=false;
+  browser.storage.local.get('loceroFaviconRefreshJob').then(result=>{
+    const q=result?.loceroFaviconRefreshJob;
+    const s=document.querySelector('#thumbnailGenerationStatus');
+    if(!q||!s)return;
+    s.textContent=q.error
+      ? 'Favicon error — '+q.error
+      : q.finished
+        ? 'Favicon refresh complete — '+(q.updated||0)+' updated, '+(q.unchanged||0)+' unchanged, '+(q.kept||0)+' existing icons kept because their websites were unavailable'+(q.missing?', '+q.missing+' websites had no favicon available':'')+'.'
+        : 'Refreshing favicons in the background — '+(q.done||0)+'/'+(q.total||0)+' websites checked.';
+  }).catch(()=>{});
   requestAnimationFrame(()=>document.querySelector('#refreshFavicons')?.focus());
 });
 document.querySelector('#faviconsDialogCloseX')?.addEventListener('click',()=>{
@@ -5104,12 +5114,23 @@ document.querySelector('#faviconsDialogCloseX')?.addEventListener('click',()=>{
 document.querySelector('#refreshFavicons')?.addEventListener('click',()=>runThumbnailGeneration());
 
 browser.storage.onChanged.addListener((changes,area)=>{
-  if(area!=='local'||!changes[LOCERO_THUMBNAIL_KEY])return;
-  bookmarkThumbnailCache=changes[LOCERO_THUMBNAIL_KEY].newValue||{};
-  document.querySelectorAll('.item.bookmark[data-path]').forEach(el=>{
-    const n=findNodeByPath(el.dataset.path,tree);
-    if(n)applyBookmarkThumbnail(el,n);
-  });
+  if(area!=='local')return;
+  if(changes[LOCERO_THUMBNAIL_KEY]){
+    bookmarkThumbnailCache=changes[LOCERO_THUMBNAIL_KEY].newValue||{};
+    document.querySelectorAll('.item.bookmark[data-path]').forEach(el=>{
+      const n=findNodeByPath(el.dataset.path,tree);
+      if(n)applyBookmarkThumbnail(el,n);
+    });
+  }
+  if(changes.loceroFaviconRefreshJob){
+    const q=changes.loceroFaviconRefreshJob.newValue||{};
+    const s=document.querySelector('#thumbnailGenerationStatus');
+    if(s)s.textContent=q.error
+      ? 'Favicon error — '+q.error
+      : q.finished
+        ? 'Favicon refresh complete — '+(q.updated||0)+' updated, '+(q.unchanged||0)+' unchanged, '+(q.kept||0)+' existing icons kept because their websites were unavailable'+(q.missing?', '+q.missing+' websites had no favicon available':'')+'.'
+        : 'Refreshing favicons in the background — '+(q.done||0)+'/'+(q.total||0)+' websites checked.';
+  }
 });
 
 browser.runtime.onMessage.addListener(m=>{
