@@ -1,6 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="popup.css"></head><body>
 <div id="status">Starting…</div>
 <div id="topActions"><button id="saveCurrentLoceroBtn" class="save-current-locero" title="Save the current page or PDF to Locero">Save to&nbsp;<span class="shortcut-letter">L</span>ocero</button><button id="sendCurrentZoteroBtn" class="send-current-zotero" title="Send the current page to Zotero">Send to&nbsp;<span class="shortcut-letter">Z</span>otero</button><button id="undoBtn" title="Undo" aria-label="Undo" disabled><span class="history-icon" aria-hidden="true">⟲</span></button><button id="redoBtn" title="Redo" aria-label="Redo" disabled><span class="history-icon" aria-hidden="true">⟳</span></button><button id="settingsBtn" title="Settings" aria-label="Settings"><span class="gear" aria-hidden="true">⚙</span></button></div>
+<div id="activityPanel" class="activity-panel" role="status" aria-live="polite" hidden><span class="activity-spinner" aria-hidden="true"></span><div class="activity-copy"><strong id="activityTitle">Working…</strong><span id="activityDetail"></span></div></div>
 <div id="selectionHint" class="selection-hint" hidden>Ctrl+click to select more than one item.</div>
 <div id="root" class="root"></div>
 <div id="welcome" class="welcome" hidden>

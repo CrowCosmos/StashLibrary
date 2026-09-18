@@ -8,6 +8,7 @@ let selectionAnchorPath=null;
 let keyboardTreePath='';
 let statusHoldUntil=0, operationStarted=0, operationLabel='';
 let operationActive=false, backgroundRefreshPending=false, refreshInFlight=null, silentNativeProgress=0;
+let activityTimer=null;
 let manualBackupActive=false;
 let lastTreeSignature='', lastBackgroundRefreshAt=0;
 const BACKGROUND_REFRESH_INTERVAL=5000;
@@ -148,21 +149,42 @@ async function withHistoryGroup(label,fn){
   }
 }
 
+function friendlyStatusText(text,busy=false){
+  const raw=String(text??'').trim();
+  if(/checking locero helper|connecting to local helper|^starting\b|locero helper (?:is )?compatible/i.test(raw))return 'Loading…';
+  if(/locero helper not detected/i.test(raw))return 'Setup required';
+  const ready=raw.match(/^Ready\s*[—-]\s*(\d+)\s+items?/i);
+  if(ready)return `Ready — ${ready[1]} item${ready[1]==='1'?'':'s'}`;
+  if(/^Ready\b/i.test(raw))return 'Ready';
+  if(busy){const label=raw.split(/\s+—\s+/)[0].trim();return /\d+(?:\.\d+)?%$/.test(label)?label:`${label||'Working'}…`}
+  return raw.replace(/\s+—\s+\d+(?:\.\d+)?s$/,'');
+}
+function hideActivity(){clearTimeout(activityTimer);activityTimer=null;const panel=document.querySelector('#activityPanel');if(panel)panel.hidden=true}
+function showActivity(title,detail=''){
+  const update=()=>{const panel=document.querySelector('#activityPanel');if(!panel)return;document.querySelector('#activityTitle').textContent=String(title||'Working').replace(/…?$/,'…');const d=document.querySelector('#activityDetail');const friendlyDetail=/[a-z]:[\\/]/i.test(String(detail||''))?'Working with your Locero library':String(detail||'');d.textContent=friendlyDetail;d.hidden=!friendlyDetail;panel.hidden=false};
+  const panel=document.querySelector('#activityPanel');
+  if(panel&&!panel.hidden){update();return}
+  if(activityTimer)return;
+  activityTimer=setTimeout(()=>{activityTimer=null;if(operationActive)update()},450);
+}
 function status(text,{hold=0,busy=false}={}){
   text=String(text??'');
-  const isReady=/^Ready(?:\b|\s|—|-)/i.test(text.trim());
-  statusEl.textContent=text;
+  const visible=friendlyStatusText(text,busy);
+  const isReady=/^Ready(?:\b|\s|—|-)/i.test(visible.trim());
+  statusEl.textContent=visible;
   statusEl.classList.toggle('busy',!!busy&&!isReady);
   statusEl.title=text;
-  debugRecord('status',{text,busy:!!busy});
+  debugRecord('status',{text,visible,busy:!!busy});
   if(hold) statusHoldUntil=Date.now()+hold;
 }
 function beginOperation(label,detail=''){
   operationStarted=Date.now(); operationLabel=label; operationActive=true;
+  showActivity(label,detail);
   status(`${label}${detail?' — '+detail:''}`,{busy:true});
 }
 function _releaseOperationLock(){
   operationActive=false;
+  hideActivity();
   if(backgroundRefreshPending) scheduleBackgroundRefresh(250);
 }
 function finishOperation(text){
@@ -354,7 +376,7 @@ async function init(){
   ]);
   const theme=prefs.theme||'system';
   applyTheme(theme);
-  status('Checking Locero Helper and existing data…',{busy:true});
+  status('Loading…',{busy:true});
   const onboardingShown=await maybeShowOnboarding({startup:true});
   if(onboardingShown){
     status('Setup required — complete the steps below to start saving');
@@ -413,8 +435,8 @@ async function refreshTree(reason='manual'){
   const run=(async()=>{
     const reopenPaths=reason==='change'?openPanels.map(p=>p?.dataset?.folder).filter(Boolean):[];
     try{
-      if(reason==='startup') beginOperation('Starting','connecting to local helper');
-      else if(reason==='manual') beginOperation('Refreshing','reading storage folder');
+      if(reason==='startup') beginOperation('Loading Locero','Opening your library');
+      else if(reason==='manual') beginOperation('Refreshing','Updating your library');
       if(isBackground)silentNativeProgress++;
       const r=await send({cmd:'tree'});
       if(!r.ok) throw new Error(r.error);
@@ -443,8 +465,8 @@ async function refreshTree(reason='manual'){
       const count=countNodes(tree);
       debugRecord(isBackground?'background-refresh':'tree-refresh',{changed:true,reason,count});
 
-      if(reason==='startup'||reason==='manual') finishOperation(`Ready — ${count} item${count===1?'':'s'} — ${r.root||'no folder selected'}`);
-      else if(!isBackground&&Date.now()>statusHoldUntil) status(`Ready — ${count} item${count===1?'':'s'} — ${r.root||''}`);
+      if(reason==='startup'||reason==='manual') finishOperation(`Ready — ${count} item${count===1?'':'s'}`);
+      else if(!isBackground&&Date.now()>statusHoldUntil) status(`Ready — ${count} item${count===1?'':'s'}`);
     }catch(e){
       if(isBackground){
         debugRecord('background-refresh-error',{error:String(e?.message||e)});
@@ -4608,7 +4630,8 @@ browser.runtime.onMessage.addListener(m=>{
  if(m?.type==='archive-progress'&&m.payload){
    const p=m.payload;
    const elapsed=p.elapsed!=null?` — ${Number(p.elapsed).toFixed(1)}s`:'';
-   status(`${p.stage||'Complete save'}${p.detail?' — '+p.detail:''}${elapsed}`,{busy:true});
+   status(`${p.stage||'Saving'}${elapsed}`,{busy:true});
+   if(operationActive)showActivity(p.stage||operationLabel||'Saving',p.detail||'');
 
    if(currentLoceroSaveAuditId){
      const stage=String(p.stage||'').toLowerCase();
@@ -4677,7 +4700,8 @@ browser.runtime.onMessage.addListener(m=>{
    if(silentNativeProgress>0)return;
    const pct=Number.isFinite(p.percent)?` ${Math.round(p.percent)}%`:'';
    const elapsed=p.elapsed!=null?` — ${Number(p.elapsed).toFixed(1)}s`:'';
-   status(`${p.operation||'Working'}${pct}${p.stage?' — '+p.stage:''}${p.detail?' — '+p.detail:''}${elapsed}`,{busy:true});
+   status(`${p.operation||'Working'}${pct}`,{busy:true});
+   if(operationActive)showActivity(`${p.operation||operationLabel||'Working'}${pct}`,p.detail||p.stage||'');
  }else if(p.event==='changed'){
    // The native watcher may emit noisy/repeated notifications. Do not debounce
    // forever and do not redraw every 500 ms: schedule at most one quiet check
