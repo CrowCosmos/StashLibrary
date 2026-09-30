@@ -2561,6 +2561,36 @@ button.action-success, .ctx-item.action-success {
 }
 #topActions .send-current-zotero:hover:not(:disabled){background:#c7352c!important;}
 
+/* StashFerret cosmetic preview — neutral primary actions with compact brand marks. */
+#topActions .save-current-locero,
+#topActions .send-current-zotero{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-width:118px!important;
+  padding-left:8px!important;
+  padding-right:8px!important;
+  border-left:1px solid var(--border)!important;
+  border-right:0!important;
+  background:color-mix(in srgb,var(--panel-fg) 6%,var(--panel))!important;
+  color:var(--panel-fg)!important;
+  box-shadow:none!important;
+}
+#topActions .save-current-locero:hover:not(:disabled),
+#topActions .send-current-zotero:hover:not(:disabled){
+  background:var(--hover)!important;
+  color:var(--panel-fg)!important;
+}
+#topActions .action-logo{width:16px;height:16px;flex:0 0 16px}
+#topActions .stashferret-action-logo{display:block;object-fit:contain}
+#topActions .zotero-action-logo{
+  display:inline-flex;align-items:center;justify-content:center;
+  box-sizing:border-box;border:1.5px solid #b3261e;border-radius:3px;
+  color:#b3261e;font-family:Georgia,"Times New Roman",serif;font-size:12px;font-weight:700;line-height:1;
+}
+.setup-component-mark img{width:42px;height:42px;object-fit:contain}
+
 /* Danger buttons keep the normal Locero fill and use a restrained red border. */
 button.danger-subtle,
 .locero-dialog-buttons button.dialog-danger-action{

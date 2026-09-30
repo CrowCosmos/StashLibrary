@@ -1,20 +1,20 @@
 <!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="popup.css"></head><body>
 <div id="status">Starting…</div>
-<div id="topActions"><button id="saveCurrentLoceroBtn" class="save-current-locero" title="Save the current page or PDF to Locero">Save to&nbsp;<span class="shortcut-letter">L</span>ocero</button><button id="sendCurrentZoteroBtn" class="send-current-zotero" title="Send the current page to Zotero">Send to&nbsp;<span class="shortcut-letter">Z</span>otero</button><button id="undoBtn" title="Undo" aria-label="Undo" disabled><span class="history-icon" aria-hidden="true">⟲</span></button><button id="redoBtn" title="Redo" aria-label="Redo" disabled><span class="history-icon" aria-hidden="true">⟳</span></button><button id="settingsBtn" title="Settings" aria-label="Settings"><span class="gear" aria-hidden="true">⚙</span></button></div>
+<div id="topActions"><button id="saveCurrentLoceroBtn" class="save-current-locero" title="Save the current page or PDF to StashFerret"><img class="action-logo stashferret-action-logo" src="icons/stashferret-32.png" alt="">Save to StashFerret</button><button id="sendCurrentZoteroBtn" class="send-current-zotero" title="Save the current page to Zotero"><span class="action-logo zotero-action-logo" aria-hidden="true">Z</span>Save to&nbsp;<span class="shortcut-letter">Z</span>otero</button><button id="undoBtn" title="Undo" aria-label="Undo" disabled><span class="history-icon" aria-hidden="true">⟲</span></button><button id="redoBtn" title="Redo" aria-label="Redo" disabled><span class="history-icon" aria-hidden="true">⟳</span></button><button id="settingsBtn" title="Settings" aria-label="Settings"><span class="gear" aria-hidden="true">⚙</span></button></div>
 <div id="activityPanel" class="activity-panel" role="status" aria-live="polite" hidden><span class="activity-spinner" aria-hidden="true"></span><div class="activity-copy"><strong id="activityTitle">Working…</strong><span id="activityDetail"></span></div></div>
 <div id="selectionHint" class="selection-hint" hidden>Ctrl+click to select more than one item.</div>
 <div id="root" class="root"></div>
 <div id="welcome" class="welcome" hidden>
-  <h2>Welcome to Locero</h2>
-  <p>Locero automatically keeps your local library in the <strong>Locero</strong> folder on your Windows drive. Open <strong>⚙ Settings</strong> to view it, then optionally set up Cloud Backup.</p>
-  <p><strong>Save a page or PDF locally:</strong> right-click in the bookmark area and choose <em>Add Bookmark</em>. Locero stores the original URL and the time you saved it, so that date can later become Zotero's <strong>Accessed</strong> date.</p>
+  <h2>Welcome to StashFerret</h2>
+  <p>StashFerret automatically keeps your local library in the existing <strong>Locero</strong> folder on your Windows drive. Open <strong>⚙ Settings</strong> to view it, then optionally set up Cloud Backup.</p>
+  <p><strong>Save a page or PDF locally:</strong> right-click in the bookmark area and choose <em>Add Bookmark</em>. StashFerret stores the original URL and the time you saved it, so that date can later become Zotero's <strong>Accessed</strong> date.</p>
   <p><strong>Send something straight to Zotero:</strong> click <em>Send to Zotero</em>. Pick a Zotero folder, then click Save. Nothing is sent before you confirm.</p>
-  <p><strong>Useful extras:</strong> Ctrl+click selects several bookmarks at once; Ctrl+Z / Ctrl+Y undo and redo; you can migrate selected Zotero folders into Locero, send archived items back to Zotero, drag/reorder items, and keep an optional WebDAV cloud backup.</p>
+  <p><strong>Useful extras:</strong> Ctrl+click selects several bookmarks at once; Ctrl+Z / Ctrl+Y undo and redo; you can migrate selected Zotero folders into StashFerret, send archived items back to Zotero, drag/reorder items, and keep an optional cloud backup.</p>
   <button id="welcomeSettings">Open Settings</button>
 </div>
 <div id="ctx" class="ctx" hidden></div>
 
-<section id="settingsPanel" class="settings-panel" hidden aria-label="Locero settings">
+<section id="settingsPanel" class="settings-panel" hidden aria-label="StashFerret settings">
   <div class="settings-header">
     <div class="settings-title"><span class="gear" aria-hidden="true">⚙</span><span>Settings</span></div>
   </div>
@@ -33,7 +33,7 @@
 
     <div class="settings-section" id="appearanceSection">
       <div class="section-title">Theme</div>
-      <div class="segmented theme-picker" role="group" aria-label="Locero theme">
+      <div class="segmented theme-picker" role="group" aria-label="StashFerret theme">
         <button type="button" data-theme="system">System</button>
         <button type="button" data-theme="light">Light</button>
         <button type="button" data-theme="dark">Dark</button>
@@ -50,12 +50,12 @@
     </div>
 
     <div class="settings-section" id="backupsSection">
-      <div class="section-title">WebDAV Cloud Backup</div>
+      <div class="section-title">Cloud Backup</div>
       <div id="webdavBackupSection" class="cloud-backup-one-view">
-        <div class="settings-note cloud-backup-intro">Maintain a cloud backup through a WebDAV service. At current, this app only supports Koofr. WebDAV backups run only when you press <strong>Back Up Now</strong>.</div>
+        <div class="settings-note cloud-backup-intro">Keep an extra copy of your Locero library in Koofr. Locero only uploads when you choose <strong>Back Up Now</strong>.</div>
 
         <div id="webdavDisconnectedView">
-          <label class="field-label" for="webdavProvider">WebDAV provider</label>
+          <label class="field-label" for="webdavProvider">Cloud provider</label>
           <select id="webdavProvider">
             <option value="">Choose provider…</option>
             <option value="koofr">Koofr</option>
@@ -81,7 +81,7 @@
           <div id="webdavBackupError" class="settings-note cloud-backup-error" hidden></div>
           <div class="cloud-backup-primary-actions">
             <button id="webdavBackupNow" class="cloud-backup-connected-button" type="button">
-              <span id="webdavBackupActionLabel" class="cloud-backup-action-label">Connected · Back Up Now…</span>
+              <span id="webdavBackupActionLabel" class="cloud-backup-action-label">Back Up Now…</span>
               <span class="cloud-backup-action-account"><span id="webdavConnectedProvider">WebDAV</span><span id="webdavConnectedAccount"></span></span>
             </button>
             <div class="cloud-backup-menu-wrap">
@@ -104,7 +104,7 @@
             <div id="webdavProgressDetail" class="cloud-backup-progress-detail"></div>
             <div id="webdavWorkerProgress" class="cloud-transfer-workers" hidden></div>
           </div>
-          <div id="webdavLastBackup" class="settings-info compact cloud-backup-time">Last backed up: Never</div>
+          <div id="webdavLastBackup" class="settings-info compact cloud-backup-time">Last backup: Never</div>
           <div id="webdavLastRunSummary" class="settings-note compact cloud-backup-last-run" hidden></div>
         </div>
       </div>
@@ -142,12 +142,12 @@
       <div class="settings-actions compact-action-grid quick-actions-grid">
         <button id="zoteroLoad">Zotero Migration…</button>
         <button id="configureKeyboardShortcuts">Keyboard Shortcuts…</button>
-        <button id="scanRepair">Diagnostics &amp; Repair…</button>
+        <button id="scanRepair">Check &amp; Repair Library…</button>
         <button id="openFaviconsDialog" type="button">Favicons…</button>
         <button id="reportBugBtn" class="support-action">Report a Bug</button>
         <button id="donateBtn" class="support-action">Support the Project</button>
       </div>
-      <button id="openUninstallComponents" class="wide-btn uninstall-action-wide" type="button">Uninstall Locero…</button>
+      <button id="openUninstallComponents" class="wide-btn uninstall-action-wide" type="button">Uninstall StashFerret…</button>
     </div>
 
   </div>
@@ -158,18 +158,18 @@
   <div class="zdest-dialog onboarding-dialog setup-wizard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
     <div class="onboarding-header">
       <div>
-        <div class="onboarding-kicker">Welcome to Locero</div>
-        <strong id="onboardingTitle">Set up Locero</strong>
+        <div class="onboarding-kicker">Welcome to StashFerret</div>
+        <strong id="onboardingTitle">Set up StashFerret</strong>
       </div>
       <button id="onboardingCloseX" class="onboarding-close-x" type="button" aria-label="Close Setup" title="Close Setup" hidden>×</button>
     </div>
 
     <div class="setup-wizard-pages">
       <section class="setup-wizard-page" data-setup-slide="0">
-        <div class="how-to-illustration save-illustration" aria-hidden="true"><div class="howto-browser-bar">Webpage / PDF</div><div class="howto-action-pill">Save to Locero</div><div class="howto-arrow">↓</div><div class="howto-file-card">Stable HTML / PDF bookmark</div></div>
+        <div class="how-to-illustration save-illustration" aria-hidden="true"><div class="howto-browser-bar">Webpage / PDF</div><div class="howto-action-pill">Save to StashFerret</div><div class="howto-arrow">↓</div><div class="howto-file-card">Stable HTML / PDF bookmark</div></div>
         <h3>Save reading locally</h3>
-        <p>Use <strong>Save to Locero</strong> to keep a stable local HTML or PDF copy while retaining the original source link and accessed date.</p>
-        <div class="setup-installed-note">Locero for Firefox <span id="onboardingExtensionStatus">v0.1.0 · Installed</span></div>
+        <p>Use <strong>Save to StashFerret</strong> to keep a stable local HTML or PDF copy while retaining the original source link and accessed date.</p>
+        <div class="setup-installed-note">StashFerret for Firefox <span id="onboardingExtensionStatus">v0.1.0 · Installed</span></div>
       </section>
       <section class="setup-wizard-page" data-setup-slide="1" hidden>
         <div class="how-to-illustration organise-illustration" aria-hidden="true"><div class="howto-folder">▾ Reading</div><div class="howto-folder child">▸ Climate</div><div class="howto-bookmark">◉ Paper on climate modelling</div><div class="howto-folder child">▸ Politics</div></div>
@@ -177,9 +177,9 @@
         <p>Create folders, drag and reorder items, and keep your reading organised with the speed of browser bookmarks.</p>
       </section>
       <section class="setup-wizard-page" data-setup-slide="2" hidden>
-        <div class="how-to-illustration zotero-illustration" aria-hidden="true"><div class="howto-file-card">Saved Locero item</div><div class="howto-arrow horizontal">→</div><div class="howto-zotero-card"><b>Z</b><span>Zotero</span></div><div class="howto-meta">Source link + Accessed date</div></div>
+        <div class="how-to-illustration zotero-illustration" aria-hidden="true"><div class="howto-file-card">Saved StashFerret item</div><div class="howto-arrow horizontal">→</div><div class="howto-zotero-card"><b>Z</b><span>Zotero</span></div><div class="howto-meta">Source link + Accessed date</div></div>
         <h3>Send reading to Zotero</h3>
-        <p>Send current or archived items to Zotero when you are ready. Locero preserves the original source link and accessed date.</p>
+        <p>Send current or archived items to Zotero when you are ready. StashFerret preserves the original source link and accessed date.</p>
       </section>
       <section class="setup-wizard-page" data-setup-slide="3" hidden>
         <div class="how-to-illustration files-illustration" aria-hidden="true"><div class="howto-folder-large">📁 Locero</div><div class="howto-file-row">HTML &nbsp; saved-page.html</div><div class="howto-file-row">PDF &nbsp;&nbsp; paper.pdf</div></div>
@@ -188,13 +188,13 @@
       </section>
 
       <section class="setup-wizard-page setup-component-page" data-setup-slide="4" hidden>
-        <div class="setup-component-mark" aria-hidden="true">L</div>
+        <div class="setup-component-mark" aria-hidden="true"><img src="icons/stashferret-48.png" alt=""></div>
         <h3>Install the Windows Integration</h3>
-        <p>Firefox cannot save directly into your local archive by itself. Locero installs a small Windows integration for local file access. It is updated together with the matching Locero release.</p>
+        <p>Firefox cannot save directly into your local archive by itself. StashFerret uses a small Windows integration for local file access. It is updated together with the matching StashFerret release.</p>
         <div class="setup-component-card onboarding-check" id="onboardingHelperCheck">
           <div class="onboarding-check-icon" aria-hidden="true">○</div>
           <div class="onboarding-check-body">
-            <div class="onboarding-check-title">Locero Helper</div>
+            <div class="onboarding-check-title">StashFerret Helper</div>
             <div id="onboardingHelperStatus" class="onboarding-check-status">Checking…</div>
             <div class="onboarding-check-help">The installer also prepares your Locero storage folder. Your archive remains ordinary files on your computer.</div>
           </div>
@@ -206,13 +206,13 @@
       <section class="setup-wizard-page setup-component-page" data-setup-slide="5" hidden>
         <div class="setup-component-mark zotero-mark" aria-hidden="true">Z</div>
         <h3>Install the Zotero Helper</h3>
-        <p>This connects Locero to Zotero so you can send archived reading into your Zotero library and migrate Zotero folders back into Locero.</p>
+        <p>This connects StashFerret to Zotero so you can send archived reading into your Zotero library and migrate Zotero folders back into StashFerret.</p>
         <div class="setup-component-card onboarding-check" id="onboardingZoteroCheck">
           <div class="onboarding-check-icon" aria-hidden="true">○</div>
           <div class="onboarding-check-body">
             <div class="onboarding-check-title">Zotero Helper</div>
             <div id="onboardingZoteroStatus" class="onboarding-check-status">Checking…</div>
-            <div class="onboarding-check-help">Keep Zotero open while Locero checks the connection.</div>
+            <div class="onboarding-check-help">Keep Zotero open while StashFerret checks the connection.</div>
           </div>
         </div>
         <button id="onboardingInstallZotero" class="setup-primary-action" type="button">Install Zotero Helper…</button>
@@ -234,40 +234,40 @@
 <div id="repairModal" class="zdest-overlay" hidden>
   <div class="zdest-dialog repair-modal" role="dialog" aria-modal="true" aria-labelledby="repairTitle">
     <div class="zdest-header">
-      <strong id="repairTitle">Diagnostics &amp; Repair</strong>
+      <strong id="repairTitle">Check &amp; Repair Library</strong>
       <button id="repairCloseX" class="locero-close-x" type="button" aria-label="Close" title="Close">×</button>
     </div>
 
     <div class="repair-toolbar">
-      <button id="repairRescanResync">Rescan &amp; Resync Library</button>
-      <button id="copyDebugLog" type="button">Copy Debug Log</button>
+      <button id="repairRescanResync">Check Library Again</button>
+      <button id="copyDebugLog" type="button">Copy Support Information</button>
       <div id="repairScanSummary" class="repair-scan-summary"></div>
     </div>
 
     <div class="repair-columns">
       <section class="repair-column">
-        <div class="repair-column-title">Records Without a File</div>
-        <div class="repair-column-help">Bookmarks/SQLite records that cannot currently find a physical file.</div>
+        <div class="repair-column-title">Bookmarks Missing Their Saved File</div>
+        <div class="repair-column-help">Bookmarks whose saved PDF or webpage cannot be found.</div>
         <div id="repairRecordsWithoutFiles" class="repair-list"></div>
       </section>
 
       <section class="repair-column">
-        <div class="repair-column-title">Files Without a Record</div>
-        <div class="repair-column-help">Physical/archive file entries that are not represented by a bookmark.</div>
+        <div class="repair-column-title">Saved Files Missing a Bookmark</div>
+        <div class="repair-column-help">Saved PDFs or webpages that do not appear in your Locero folders.</div>
         <div id="repairFilesWithoutRecords" class="repair-list"></div>
       </section>
     </div>
 
     <div id="repairMetadataIssues" class="repair-metadata-area" hidden>
-      <div class="repair-column-title">Metadata Mismatches</div>
+      <div class="repair-column-title">Bookmark Details to Update</div>
       <div id="repairMetadataList" class="repair-list compact"></div>
     </div>
 
     <div class="repair-audit-area">
       <div class="repair-audit-heading">
         <div>
-          <div class="repair-column-title">Save &amp; Migration History</div>
-          <div class="repair-column-help">Shows recent saves, failed/interrupted HTML captures, and Zotero migrations.</div>
+          <div class="repair-column-title">Recent Activity</div>
+          <div class="repair-column-help">Recent saves, imports, and anything that may need your attention.</div>
         </div>
         <button id="repairClearAudit" type="button">Clear History</button>
       </div>

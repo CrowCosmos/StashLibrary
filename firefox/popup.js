@@ -483,7 +483,7 @@ async function refreshTree(reason='manual'){
         return;
       }
       errorStatus(e);
-      root.innerHTML='<div class="empty">Locero could not read the storage folder. Open Settings or Diagnostics for details.</div>';
+      root.innerHTML='<div class="empty">Locero could not open your library. Open Settings or Check & Repair Library for help.</div>';
     }finally{
       if(isBackground)silentNativeProgress=Math.max(0,silentNativeProgress-1);
     }
@@ -1648,7 +1648,22 @@ function formatCloudProgressStage(kind,stage){
   const op=k.includes('recovery')?'Recovery':(k.includes('restore')?'Restore':'Backup');
   const raw=String(stage||'').trim();
   if(!raw)return `Cloud ${op}`;
-  return `Cloud ${op} · ${raw.charAt(0).toUpperCase()+raw.slice(1)}`;
+  const friendly=({
+    'verifying local catalogue':'Checking your library','comparing cloud backup':'Checking the existing backup',
+    'uploading files':'Uploading saved items','uploading catalogue':'Finishing the upload',
+    'verifying cloud catalogue':'Checking the uploaded backup','publishing verified backup':'Finalising the backup',
+    'confirming cloud changes':'Confirming the backup','downloading catalogue':'Opening the backup',
+    'comparing local files':'Comparing saved items','downloading changed files':'Downloading saved items',
+    'verifying downloaded backup':'Checking the downloaded backup','finished':'Complete','failed':'Needs attention'
+  })[raw.toLowerCase()]||raw.charAt(0).toUpperCase()+raw.slice(1);
+  return `Cloud ${op} · ${friendly}`;
+}
+function friendlyCloudError(value){
+  const text=String(value||'');
+  if(/(?:http\s*)?401|unauthori[sz]ed/i.test(text))return 'Could not sign in. Check your Koofr email and app password.';
+  if(/(?:http\s*)?403|forbidden/i.test(text))return 'Koofr would not allow this action. Check the connected account.';
+  if(/timed?\s*out|timeout/i.test(text))return 'The cloud service took too long to respond. Please try again.';
+  return text;
 }
 function renderWebdavWorkerProgress(workers=[]){
   const box=document.querySelector('#webdavWorkerProgress');if(!box)return;
@@ -1689,7 +1704,7 @@ function renderWebdavProgress({active=false,kind='',stage='',detail='',percent=n
   box.classList.toggle('is-indeterminate',!determinate);
   const stageEl=document.querySelector('#webdavProgressStage');if(stageEl)stageEl.textContent=formatCloudProgressStage(kind,stage);
   const pctEl=document.querySelector('#webdavProgressPercent');if(pctEl)pctEl.textContent=determinate?`${Math.round(clamped)}%`:'Working…';
-  const detailEl=document.querySelector('#webdavProgressDetail');if(detailEl){detailEl.textContent=String(detail||error||'Working in the background…');detailEl.title=detailEl.textContent;}
+  const detailEl=document.querySelector('#webdavProgressDetail');if(detailEl){detailEl.textContent=friendlyCloudError(detail||error||'Working in the background…');detailEl.title=detailEl.textContent;}
   const fill=document.querySelector('#webdavProgressFill');if(fill && determinate)fill.style.width=`${clamped}%`;
   const track=box.querySelector('.cloud-backup-progress-track');if(track){
     track.setAttribute('aria-valuetext',`${formatCloudProgressStage(kind,stage)}${detail?` — ${detail}`:''}`);
@@ -1739,14 +1754,14 @@ function renderWebdavBackupInfo(info={}){
   const connectButton=document.querySelector('#webdavConnect');if(connectButton)connectButton.textContent='Configure Cloud Backup';
   const providerName=document.querySelector('#webdavConnectedProvider');if(providerName)providerName.textContent=info.providerLabel||'WebDAV';
   const account=document.querySelector('#webdavConnectedAccount');if(account)account.textContent=info.username?` · ${info.username}`:'';
-  const last=document.querySelector('#webdavLastBackup');if(last)last.textContent=`Last backed up: ${formatCloudBackupTime(info.lastBackupAt)}`;
+  const last=document.querySelector('#webdavLastBackup');if(last)last.textContent=`Last backup: ${formatCloudBackupTime(info.lastBackupAt)}`;
   const lastRun=document.querySelector('#webdavLastRunSummary');
   if(lastRun){
     const haveRun=!!info.lastBackupAt && info.lastRunProviderConfirmed===true;
     if(haveRun){
-      const provider=info.providerLabel||'Cloud provider';
-      const parts=[`${Number(info.lastRunNew||0)} new`,`${Number(info.lastRunUpdated||0)} updated`,`${Number(info.lastRunDeleted||0)} deleted`,`${Number(info.lastRunUnchanged||0)} unchanged`];
-      lastRun.textContent=`${parts.join(' · ')} · Confirmed by ${provider}`;
+      const changed=Number(info.lastRunNew||0)+Number(info.lastRunUpdated||0)+Number(info.lastRunDeleted||0);
+      const checked=changed+Number(info.lastRunUnchanged||0);
+      lastRun.textContent=changed?`${changed} change${changed===1?'':'s'} backed up · ${checked} item${checked===1?'':'s'} checked`:`Up to date · ${checked} item${checked===1?'':'s'} checked`;
       lastRun.hidden=false;
     }else{lastRun.textContent='';lastRun.hidden=true;}
   }
@@ -1758,17 +1773,17 @@ function renderWebdavBackupInfo(info={}){
       ?`This computer's Locero library is empty, while the cloud backup contains ${remote} archived file${remote===1?'':'s'}. Back Up Now is blocked so the cloud backup cannot be erased.`
       :`Locero is protecting the existing cloud backup because this local library is empty.`;
   }
-  const error=document.querySelector('#webdavBackupError');if(error){error.textContent=info.lastError?`Cloud backup needs attention: ${info.lastError}`:'';error.hidden=!info.lastError;}
+  const error=document.querySelector('#webdavBackupError');if(error){error.textContent=info.lastError?`Cloud backup needs attention: ${friendlyCloudError(info.lastError)}`:'';error.hidden=!info.lastError;}
   renderWebdavProgress({active:!!info.cloudOperationActive,kind:info.cloudOperation,stage:info.cloudOperationStage,detail:info.cloudOperationDetail,percent:info.cloudOperationPercent,error:info.cloudOperationError,workers:info.cloudOperationWorkers||[]});
   const backup=document.querySelector('#webdavBackupNow');
   if(backup){
     const active=!!info.backupActive;const op=String(info.cloudOperation||'').toLowerCase();
     backup.disabled=!connected||replacementBlocked||active;
     const label=document.querySelector('#webdavBackupActionLabel');
-    const activeLabel=op.includes('recovery')?'Connected · Recovering…':(op.includes('restore')?'Connected · Restoring…':'Connected · Backing up…');
-    const activeAria=op.includes('recovery')?'Connected — recovering Cloud Backup':(op.includes('restore')?'Connected — restoring Cloud Backup':'Connected — backing up Cloud Backup');
-    if(label)label.textContent=active?activeLabel:'Connected · Back Up Now…';
-    backup.setAttribute('aria-label',active?activeAria:'Connected — Back Up Now');
+    const activeLabel=op.includes('recovery')?'Recovering…':(op.includes('restore')?'Restoring…':'Backing Up…');
+    const activeAria=op.includes('recovery')?'Recovering cloud backup':(op.includes('restore')?'Restoring cloud backup':'Backing up to the cloud');
+    if(label)label.textContent=active?activeLabel:'Back Up Now…';
+    backup.setAttribute('aria-label',active?activeAria:'Back Up Now');
   }
   const restore=document.querySelector('#webdavRestore');if(restore){restore.disabled=!connected||!info.hasCloudBackup||!!info.backupActive;restore.textContent='Restore from Cloud Backup…';}
   const recoverKoofr=document.querySelector('#webdavRecoverKoofrZip');
@@ -1786,7 +1801,7 @@ function renderOnboardingCloudStatus(info={}){
   const connected=!!info.connected;row.classList.toggle('done',connected);row.classList.remove('problem');
   const icon=row.querySelector('.onboarding-check-icon');if(icon)icon.textContent=connected?'✓':'○';
   const statusEl=document.querySelector('#onboardingCloudStatus');
-  if(statusEl)statusEl.textContent=connected?`${info.providerLabel||'WebDAV'} connected${info.lastBackupAt?` · Last backed up ${formatCloudBackupTime(info.lastBackupAt)}`:''}`:'Not connected — optional';
+  if(statusEl)statusEl.textContent=connected?`${info.providerLabel||'Cloud backup'} connected${info.lastBackupAt?` · Last backup ${formatCloudBackupTime(info.lastBackupAt)}`:''}`:'Not connected — optional';
   const button=document.querySelector('#onboardingOpenCloudSettings');if(button)button.textContent=connected?'Manage Cloud Backup…':'Set Up Cloud Backup…';
 }
 function renderLoceroUpdateComponent(name,build,state,detail=''){
@@ -2121,7 +2136,7 @@ async function confirmLoceroDestination(){
 
   try{
     document.querySelector('#loceroDestinationModal').hidden=true;
-    beginOperation('Saving to Locero',`${tab.title||tab.url} → ${targetName}`);
+    beginOperation('Saving to StashFerret',`${tab.title||tab.url} → ${targetName}`);
 
     let r;
     if(/^https?:/i.test(tab.url)){
@@ -2132,7 +2147,7 @@ async function confirmLoceroDestination(){
       if(r?.ok)r={...r,saveKind:'local-file'};
     }
 
-    if(!r?.ok)throw new Error(r?.error||'Could not save the current page to Locero.');
+    if(!r?.ok)throw new Error(r?.error||'Could not save the current page to StashFerret.');
 
     ldestLastPath=String(parent);
     try{await browser.storage.local.set({loceroLastSaveFolder:ldestLastPath})}catch(_){}
@@ -2145,7 +2160,7 @@ async function confirmLoceroDestination(){
     });
 
     await refreshTree('change');
-    finishOperation(`Saved to Locero — “${r.physicalName||PathLabel(r.path)}”`);
+    finishOperation(`Saved to StashFerret — “${r.physicalName||PathLabel(r.path)}”`);
     pendingLoceroSave=null;
     currentLoceroSaveAuditId='';
   }catch(e){
@@ -3422,8 +3437,8 @@ async function getGlobalLoceroShortcut(){
 async function buildShortcutRows(){
   const globalShortcut=await getGlobalLoceroShortcut();
   shortcutRowsState=[
-    {key:'toggle-locero',label:'Open / Close Locero',value:globalShortcut,global:true,editable:true},
-    {key:'saveLocero',label:'Save to Locero',value:localShortcuts.saveLocero,editable:true},
+    {key:'toggle-locero',label:'Open / Close StashFerret',value:globalShortcut,global:true,editable:true},
+    {key:'saveLocero',label:'Save to StashFerret',value:localShortcuts.saveLocero,editable:true},
     {key:'sendZotero',label:'Send to Zotero',value:localShortcuts.sendZotero,editable:true},
     {key:'undo',label:'Undo',value:localShortcuts.undo,editable:true},
     {key:'redo',label:'Redo',value:localShortcuts.redo,editable:true},
@@ -3433,7 +3448,7 @@ async function buildShortcutRows(){
     {key:'selectAll',label:'Select All',value:localShortcuts.selectAll,editable:true},
     {key:'delete',label:'Delete',value:localShortcuts.delete,editable:true},
     {key:'backClose',label:'Back / Close',value:localShortcuts.backClose,editable:true},
-    {key:'escapeApp',label:'Exit Locero',value:localShortcuts.escapeApp,editable:true},
+    {key:'escapeApp',label:'Exit StashFerret',value:localShortcuts.escapeApp,editable:true},
     {key:'activate',label:'Activate / Confirm',value:localShortcuts.activate,editable:true},
     {key:'moveUp',label:'Move Up',value:localShortcuts.moveUp,editable:true},
     {key:'moveDown',label:'Move Down',value:localShortcuts.moveDown,editable:true},
@@ -4665,7 +4680,7 @@ browser.runtime.onMessage.addListener(m=>{
          const warnings=Number(job.result.legacyWarnings||0);
          const skipped=Number(job.result.skippedFiles||0);
          if(skipped){
-           finishOperation(`Cloud backup restored — ${Number(job.result.files||0)-skipped}/${Number(job.result.files||0)} physical files recovered · ${skipped} unavailable legacy file${skipped===1?'':'s'} left in Diagnostics & Repair`);
+           finishOperation(`Cloud backup restored — ${Number(job.result.files||0)-skipped}/${Number(job.result.files||0)} saved items recovered · ${skipped} item${skipped===1?'':'s'} need attention in Check & Repair Library`);
          }else{
            finishOperation(warnings?`Cloud backup restored — ${warnings} old backup metadata warning${warnings===1?'':'s'} recovered`:'Cloud backup restored and verified');
          }
@@ -4723,7 +4738,7 @@ document.querySelector('#copyDebugLog').onclick=async()=>{
       events:debugEvents
     };
     await navigator.clipboard.writeText(JSON.stringify(payload,null,2));
-    status('Debug log copied to clipboard',{hold:1800});
+    status('Support information copied',{hold:1800});
   }catch(e){errorStatus(e)}
 };
 
@@ -4843,11 +4858,9 @@ function renderRepairScan(scan){
   const metadata=scan?.metadataIssues||[];
 
   const totalIssues=records.length+files.length+metadata.length;
-  summary.textContent=
-    `${totalIssues} issue${totalIssues===1?'':'s'} · `+
-    `${records.length} record${records.length===1?'':'s'} without a file · `+
-    `${files.length} file${files.length===1?'':'s'} without a record`+
-    (metadata.length?` · ${metadata.length} metadata mismatch${metadata.length===1?'':'es'}`:'');
+  summary.textContent=totalIssues
+    ?`${totalIssues} item${totalIssues===1?'':'s'} need attention · ${records.length} missing saved file${records.length===1?'':'s'} · ${files.length} missing bookmark${files.length===1?'':'s'}`+(metadata.length?` · ${metadata.length} detail${metadata.length===1?'':'s'} to update`:'')
+    :'Everything looks good';
 
   if(!records.length){
     recordsBox.innerHTML='<div class="repair-empty-small">None</div>';
@@ -4877,14 +4890,14 @@ function renderRepairScan(scan){
       }));
 
       if(issue.kind==='fileRecordWithoutPhysical'){
-        actions.append(repairButton('Delete File Record',async()=>{
+        actions.append(repairButton('Remove Broken Entry',async()=>{
           try{
             await applyRepairAction(issue,'deleteStaleFileRecord');
-            await runRepairScan('Deleted stale SQLite file record.');
+            await runRepairScan('Removed the broken entry.');
           }catch(e){errorStatus(e)}
         }));
       }else{
-        actions.append(repairButton('Delete Record',async()=>{
+        actions.append(repairButton('Remove Bookmark',async()=>{
           try{
             await applyRepairAction(issue,'deleteRecord');
             await runRepairScan('Deleted orphan bookmark record.');
@@ -4922,7 +4935,7 @@ function renderRepairScan(scan){
       }
 
       if(issue.physicalExists===false && issue.fileId){
-        actions.append(repairButton('Delete File Record',async()=>{
+        actions.append(repairButton('Remove Broken Entry',async()=>{
           try{
             await applyRepairAction(issue,'deleteFileRecord');
             await runRepairScan('Deleted orphan file record.');
@@ -4947,7 +4960,7 @@ function renderRepairScan(scan){
       issue.bookmarkTitle||issue.label,
       `${issue.physicalName||''} → ${issue.storageName||''}`
     );
-    actions.append(repairButton('Sync Metadata',async()=>{
+    actions.append(repairButton('Update Details',async()=>{
       try{
         await applyRepairAction(issue,'syncMetadata');
         await runRepairScan('Synchronized filename metadata.');
@@ -5060,11 +5073,11 @@ document.querySelector('#scanRepair').onclick=async(e)=>{
   const modal=document.querySelector('#repairModal');
   if(modal)modal.hidden=false;
   const summary=document.querySelector('#repairScanSummary');
-  if(summary)summary.textContent='Scanning Locero library…';
+  if(summary)summary.textContent='Checking your library…';
   try{
     if(typeof loceroClickFeedback==='function')loceroClickFeedback(btn,{working:true});
     await runRepairScan();
-  }catch(err){errorStatus(err);if(summary)summary.textContent='Scan failed — copy the debug log if you need to report this.'}
+  }catch(err){errorStatus(err);if(summary)summary.textContent='The check could not finish. Copy Support Information if you need to report this.'}
   finally{if(typeof loceroClearWorking==='function')loceroClearWorking(btn)}
 };
 
@@ -5073,16 +5086,16 @@ document.querySelector('#repairRescanResync').onclick=async(e)=>{
   const btn=e.currentTarget;
   try{
     if(typeof loceroClickFeedback==='function')loceroClickFeedback(btn,{working:true});
-    status('Repair — rescanning SQLite and archive, then rebuilding library',{busy:true});
+    beginOperation('Checking library','Finding and repairing missing links');
 
     const r=await send({cmd:'repair_rescan_resync'});
-    if(!r?.ok)throw new Error(r?.error||'Rescan/resync failed.');
+    if(!r?.ok)throw new Error(r?.error||'The library check could not finish.');
 
     // Re-read the tree from the native backend rather than trusting the returned
     // snapshot, so the normal extension refresh path and UI state are exercised.
     await refreshTree('change');
-    await runRepairScan(`Resynced library${r.synced?` · ${r.synced} metadata row${r.synced===1?'':'s'} updated.`:'.'}`);
-    status('Repair — library rescanned and resynchronized',{hold:2200});
+    await runRepairScan(`Library checked${r.synced?` · ${r.synced} item${r.synced===1?'':'s'} updated.`:'.'}`);
+    finishOperation('Library checked and repaired');
   }catch(err){errorStatus(err)}
   finally{if(typeof loceroClearWorking==='function')loceroClearWorking(btn)}
 };

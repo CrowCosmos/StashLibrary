@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Locero",
+  "name": "StashFerret",
   "version": "0.1.0",
   "description": "Local Bookmarks + Zotero Integration. Save stable PDF/HTML bookmarks with original links and accessed dates preserved for Zotero.",
   "browser_specific_settings": {
@@ -28,12 +28,12 @@
     "clipboardWrite"
   ],
   "browser_action": {
-    "default_title": "Locero",
+    "default_title": "StashFerret",
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icons/locero-book-z-16.png",
-      "32": "icons/locero-book-z-32.png",
-      "48": "icons/locero-book-z-48.png"
+      "16": "icons/stashferret-16.png",
+      "32": "icons/stashferret-32.png",
+      "48": "icons/stashferret-48.png"
     }
   },
   "background": {
@@ -45,10 +45,10 @@
     "persistent": true
   },
   "icons": {
-    "16": "icons/locero-book-z-16.png",
-    "32": "icons/locero-book-z-32.png",
-    "48": "icons/locero-book-z-48.png",
-    "96": "icons/locero-book-z-96.png"
+    "16": "icons/stashferret-16.png",
+    "32": "icons/stashferret-32.png",
+    "48": "icons/stashferret-48.png",
+    "96": "icons/stashferret-96.png"
   },
   "content_scripts": [
     {
@@ -86,7 +86,7 @@
       "suggested_key": {
         "default": "Ctrl+Shift+L"
       },
-      "description": "Open or close Locero"
+      "description": "Open or close StashFerret"
     }
   },
   "incognito": "not_allowed"
