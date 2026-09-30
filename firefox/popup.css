@@ -2573,7 +2573,7 @@ button.action-success, .ctx-item.action-success {
   padding-right:8px!important;
   border-left:1px solid var(--border)!important;
   border-right:0!important;
-  background:color-mix(in srgb,var(--panel-fg) 6%,var(--panel))!important;
+  background:transparent!important;
   color:var(--panel-fg)!important;
   box-shadow:none!important;
 }
@@ -2582,13 +2582,11 @@ button.action-success, .ctx-item.action-success {
   background:var(--hover)!important;
   color:var(--panel-fg)!important;
 }
-#topActions .action-logo{width:16px;height:16px;flex:0 0 16px}
-#topActions .stashferret-action-logo{display:block;object-fit:contain}
-#topActions .zotero-action-logo{
-  display:inline-flex;align-items:center;justify-content:center;
-  box-sizing:border-box;border:1.5px solid #b3261e;border-radius:3px;
-  color:#b3261e;font-family:Georgia,"Times New Roman",serif;font-size:12px;font-weight:700;line-height:1;
-}
+#topActions .send-current-zotero{border-right:1px solid var(--border)!important}
+#topActions .action-label{display:inline;white-space:nowrap}
+#topActions .action-logo{display:block;width:17px;height:17px;flex:0 0 17px;object-fit:contain}
+#topActions .stashferret-action-logo{width:18px;height:18px;flex-basis:18px}
+#topActions .zotero-action-logo{width:17px;height:17px}
 .setup-component-mark img{width:42px;height:42px;object-fit:contain}
 
 /* Danger buttons keep the normal Locero fill and use a restrained red border. */
@@ -2846,5 +2844,31 @@ html,body{font-size:14px}
 .flyout{max-height:calc(100vh - 50px)!important}
 .activity-panel{position:fixed;top:33px;left:12px;width:min(310px,calc(100vw - 24px));display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel);color:var(--panel-fg);border:1px solid var(--border);border-radius:7px;box-shadow:var(--shadow);z-index:1100}
 .activity-panel[hidden]{display:none!important}
+.activity-panel{display:none!important}
 .activity-spinner{width:17px;height:17px;flex:0 0 17px;border:2px solid color-mix(in srgb,currentColor 28%,transparent);border-right-color:currentColor;border-radius:50%;animation:spin .75s linear infinite}
 .activity-copy{min-width:0;display:grid;gap:2px;line-height:1.3}.activity-copy strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.activity-copy span{font-size:10.5px;opacity:.78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* StashFerret typography: keep bookmark rows at 14px and bring supporting UI closer. */
+#status{font-size:12px!important}
+#topActions .save-current-locero,
+#topActions .send-current-zotero,
+#topActions .open-downloads{font-size:11px!important}
+.ctx,.ctx-item{font-size:13.5px!important}
+.flyout{font-size:14px!important}
+.welcome,.settings-panel,.zdest-dialog,.locero-dialog{font-size:13.5px!important}
+.settings-title,.section-title{font-size:13.5px!important}
+.field-label,
+.settings-note,
+.settings-info{font-size:11.5px!important}
+.settings-panel button,
+.settings-panel select,
+.settings-panel input{font-size:12px!important}
+.zdest-status,
+.zdest-selected,
+.zdest-actions button,
+.zdest-buttons button,
+.locero-dialog-message,
+.locero-dialog-buttons button{font-size:13px!important}
+.selection-hint,.zotero-count{font-size:11px!important}
+.activity-copy strong{font-size:13px!important}
+.activity-copy span{font-size:12px!important}

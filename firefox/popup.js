@@ -3361,7 +3361,7 @@ document.addEventListener('keydown',e=>{
 });
 
 const LOCAL_SHORTCUT_DEFAULTS={
-  saveLocero:'L',
+  saveLocero:'S',
   sendZotero:'Z',
   undo:'Ctrl+Z',
   redo:'Ctrl+Y',
@@ -3418,11 +3418,17 @@ async function loadLocalShortcuts(){
   localShortcuts={...LOCAL_SHORTCUT_DEFAULTS};
   try{
     const stored=(await browser.storage.local.get('loceroLocalShortcuts'))?.loceroLocalShortcuts;
+    let migrated=false;
     if(stored && typeof stored==='object'){
       for(const key of Object.keys(LOCAL_SHORTCUT_DEFAULTS)){
         if(typeof stored[key]==='string')localShortcuts[key]=stored[key];
       }
+      if(String(stored.saveLocero||'').toUpperCase()==='L'){
+        localShortcuts.saveLocero='S';
+        migrated=true;
+      }
     }
+    if(migrated)await browser.storage.local.set({loceroLocalShortcuts:localShortcuts});
   }catch(_){}
 }
 loadLocalShortcuts();

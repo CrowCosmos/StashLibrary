@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="popup.css"></head><body>
-<div id="status">Starting…</div>
-<div id="topActions"><button id="saveCurrentLoceroBtn" class="save-current-locero" title="Save the current page or PDF to StashFerret"><img class="action-logo stashferret-action-logo" src="icons/stashferret-32.png" alt="">Save to StashFerret</button><button id="sendCurrentZoteroBtn" class="send-current-zotero" title="Save the current page to Zotero"><span class="action-logo zotero-action-logo" aria-hidden="true">Z</span>Save to&nbsp;<span class="shortcut-letter">Z</span>otero</button><button id="undoBtn" title="Undo" aria-label="Undo" disabled><span class="history-icon" aria-hidden="true">⟲</span></button><button id="redoBtn" title="Redo" aria-label="Redo" disabled><span class="history-icon" aria-hidden="true">⟳</span></button><button id="settingsBtn" title="Settings" aria-label="Settings"><span class="gear" aria-hidden="true">⚙</span></button></div>
+<div id="status"></div>
+<div id="topActions"><button id="saveCurrentLoceroBtn" class="save-current-locero" title="Save the current page or PDF to StashFerret"><img class="action-logo stashferret-action-logo" src="icons/stashferret-32.png" alt=""><span class="action-label">Save to <span class="shortcut-letter">S</span>tashFerret</span></button><button id="sendCurrentZoteroBtn" class="send-current-zotero" title="Save the current page to Zotero"><img class="action-logo zotero-action-logo" src="icons/zotero-32.png" alt=""><span class="action-label">Save to <span class="shortcut-letter">Z</span>otero</span></button><button id="undoBtn" title="Undo" aria-label="Undo" disabled><span class="history-icon" aria-hidden="true">⟲</span></button><button id="redoBtn" title="Redo" aria-label="Redo" disabled><span class="history-icon" aria-hidden="true">⟳</span></button><button id="settingsBtn" title="Settings" aria-label="Settings"><span class="gear" aria-hidden="true">⚙</span></button></div>
 <div id="activityPanel" class="activity-panel" role="status" aria-live="polite" hidden><span class="activity-spinner" aria-hidden="true"></span><div class="activity-copy"><strong id="activityTitle">Working…</strong><span id="activityDetail"></span></div></div>
 <div id="selectionHint" class="selection-hint" hidden>Ctrl+click to select more than one item.</div>
 <div id="root" class="root"></div>
@@ -23,7 +23,7 @@
     <div class="settings-section about-section" id="aboutSection">
       <div class="section-title">About</div>
       <div class="about-build-row">
-        <div id="aboutBuildNumber" class="about-build-number"><strong>Version 0.1.0</strong></div>
+        <div id="aboutBuildNumber" class="about-build-number"><strong>Version 0.1.5</strong></div>
         <div class="about-update-side">
           <span id="loceroUpdateSummary" class="about-update-status">Checking…</span>
           <button id="updateLoceroBtn" class="about-update-button" type="button" hidden>Install latest update</button>
@@ -169,7 +169,7 @@
         <div class="how-to-illustration save-illustration" aria-hidden="true"><div class="howto-browser-bar">Webpage / PDF</div><div class="howto-action-pill">Save to StashFerret</div><div class="howto-arrow">↓</div><div class="howto-file-card">Stable HTML / PDF bookmark</div></div>
         <h3>Save reading locally</h3>
         <p>Use <strong>Save to StashFerret</strong> to keep a stable local HTML or PDF copy while retaining the original source link and accessed date.</p>
-        <div class="setup-installed-note">StashFerret for Firefox <span id="onboardingExtensionStatus">v0.1.0 · Installed</span></div>
+        <div class="setup-installed-note">StashFerret for Firefox <span id="onboardingExtensionStatus">v0.1.5 · Installed</span></div>
       </section>
       <section class="setup-wizard-page" data-setup-slide="1" hidden>
         <div class="how-to-illustration organise-illustration" aria-hidden="true"><div class="howto-folder">▾ Reading</div><div class="howto-folder child">▸ Climate</div><div class="howto-bookmark">◉ Paper on climate modelling</div><div class="howto-folder child">▸ Politics</div></div>
