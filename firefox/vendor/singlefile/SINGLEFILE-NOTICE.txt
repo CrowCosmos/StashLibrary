@@ -1,0 +1,19 @@
+SingleFile
+
+This directory contains code from the SingleFile project.
+
+Upstream project:
+https://github.com/gildas-lormeau/SingleFile
+
+SingleFile is distributed under the GNU Affero General Public License
+version 3 or later (AGPL-3.0-or-later).
+
+Copyright belongs to the SingleFile authors and contributors.
+
+SingleFile contains or incorporates code from third-party projects that
+may be distributed under other licences. See the upstream SingleFile
+project and its source files for the applicable copyright and licence
+notices.
+
+SingleFile functionality is incorporated into StashLibrary to support saving
+web pages locally.

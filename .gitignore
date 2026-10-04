@@ -1,0 +1,9 @@
+# Distribution/build outputs
+dist/
+windows-installer/installer/payload/StashLibraryNativeHelper.exe
+*.xpi
+*.zip
+web-ext-artifacts/
+__pycache__/
+*.pyc
+native/stashlibrary.host.json

@@ -1,0 +1,93 @@
+{
+  "manifest_version": 2,
+  "name": "StashLibrary",
+  "version": "0.1.0",
+  "description": "Local Bookmarks + Zotero Integration. Save stable PDF/HTML bookmarks with original links and accessed dates preserved for Zotero.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "stashlibrary@stashlibrary.app",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "browsingActivity",
+          "websiteContent",
+          "websiteActivity"
+        ]
+      },
+      "update_url": "https://crowcosmos.github.io/StashLibrary/updates/firefox.json"
+    }
+  },
+  "permissions": [
+    "nativeMessaging",
+    "storage",
+    "tabs",
+    "<all_urls>",
+    "downloads",
+    "downloads.open",
+    "file:///*",
+    "clipboardWrite"
+  ],
+  "browser_action": {
+    "default_title": "StashLibrary",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/stashlibrary-16.png",
+      "32": "icons/stashlibrary-32.png",
+      "48": "icons/stashlibrary-48.png"
+    }
+  },
+  "background": {
+    "scripts": [
+      "vendor/singlefile/chrome-browser-polyfill.js",
+      "vendor/singlefile/single-file-background.js",
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "icons": {
+    "16": "icons/stashlibrary-16.png",
+    "32": "icons/stashlibrary-32.png",
+    "48": "icons/stashlibrary-48.png",
+    "96": "icons/stashlibrary-96.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "js": [
+        "vendor/singlefile/chrome-browser-polyfill.js",
+        "vendor/singlefile/single-file-frames.js",
+        "vendor/singlefile/single-file-extension-frames.js"
+      ],
+      "all_frames": true,
+      "match_about_blank": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "js": [
+        "vendor/singlefile/chrome-browser-polyfill.js",
+        "vendor/singlefile/single-file-bootstrap.js",
+        "vendor/singlefile/single-file-extension-core.js",
+        "vendor/singlefile/single-file.js"
+      ],
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    "vendor/singlefile/single-file-hooks-frames.js"
+  ],
+  "commands": {
+    "toggle-stashlibrary": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Open or close StashLibrary"
+    }
+  },
+  "incognito": "not_allowed"
+}

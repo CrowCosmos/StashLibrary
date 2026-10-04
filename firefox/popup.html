@@ -1,0 +1,432 @@
+<!doctype html><html><head><meta charset="utf-8"><title>StashLibrary</title><link rel="stylesheet" href="popup.css"></head><body>
+<div id="status"></div>
+<div id="topActions"><button id="saveCurrentStashLibraryBtn" class="save-current-stashlibrary" title="Add the current page or PDF to StashLibrary"><img class="action-logo stashlibrary-action-logo" src="icons/stashlibrary-32.png" alt=""><span class="action-label">Add to <span class="shortcut-letter">S</span>tashLibrary</span></button><button id="sendCurrentZoteroBtn" class="send-current-zotero" title="Send the current page to Zotero"><img class="action-logo zotero-action-logo" src="icons/zotero-32.png" alt=""><span class="action-label">Send to <span class="shortcut-letter">Z</span>otero</span></button><button id="undoBtn" title="Undo" aria-label="Undo" disabled><span class="history-icon" aria-hidden="true">⟲</span></button><button id="redoBtn" title="Redo" aria-label="Redo" disabled><span class="history-icon" aria-hidden="true">⟳</span></button><button id="settingsBtn" title="Settings" aria-label="Settings"><span class="gear" aria-hidden="true">⚙</span></button></div>
+<div id="activityPanel" class="activity-panel" role="status" aria-live="polite" hidden><span class="activity-spinner" aria-hidden="true"></span><div class="activity-copy"><strong id="activityTitle">Working…</strong><span id="activityDetail"></span></div></div>
+<div id="selectionHint" class="selection-hint" hidden>Ctrl+click selects individual items. Shift+click selects a range.</div>
+<div id="root" class="root"></div>
+<div id="welcome" class="welcome" hidden>
+  <h2>Welcome to StashLibrary</h2>
+  <p>StashLibrary automatically keeps your local library in your configured storage folder. Open <strong>⚙ Settings</strong> to view it, then optionally set up Cloud Backup.</p>
+  <p><strong>Save a page or PDF locally:</strong> right-click in the bookmark area and choose <em>Add Bookmark</em>. StashLibrary stores the original URL and the time you saved it, so that date can later become Zotero's <strong>Accessed</strong> date.</p>
+  <p><strong>Send something straight to Zotero:</strong> click <em>Send to Zotero</em>. Pick a Zotero folder, then click Save. Nothing is sent before you confirm.</p>
+  <p><strong>Useful extras:</strong> bookmarks open in a new tab; Ctrl+click selects individual items; Shift+click selects a range; Ctrl+Z / Ctrl+Y undo and redo; you can migrate selected Zotero folders into StashLibrary, send archived items back to Zotero, drag/reorder items, and keep an optional cloud backup.</p>
+  <button id="welcomeSettings">Open Settings</button>
+</div>
+<div id="ctx" class="ctx" hidden></div>
+
+<section id="settingsPanel" class="settings-panel" hidden aria-label="StashLibrary settings">
+  <div class="settings-header">
+    <div class="settings-title"><span class="gear" aria-hidden="true">⚙</span><span>Settings</span></div>
+  </div>
+  <div class="settings-scroll">
+
+    <div class="settings-section about-section" id="aboutSection">
+      <div class="section-title">About</div>
+      <div class="about-build-row">
+        <div id="aboutBuildNumber" class="about-build-number"><strong>Version 0.1.0</strong></div>
+        <div class="about-update-side">
+          <span id="stashlibraryUpdateSummary" class="about-update-status">Checking…</span>
+          <button id="updateStashLibraryBtn" class="about-update-button" type="button" hidden>Install latest update</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section" id="appearanceSection">
+      <div class="section-title">Theme</div>
+      <div class="segmented theme-picker" role="group" aria-label="StashLibrary theme">
+        <button type="button" data-theme="system">System</button>
+        <button type="button" data-theme="light">Light</button>
+        <button type="button" data-theme="dark">Dark</button>
+      </div>
+    </div>
+
+    <div class="settings-section" id="localStorageSection">
+      <div class="section-title">Storage Folder</div>
+      <div id="settingsLocalStoragePath" class="settings-info storage-path">Loading folder…</div>
+      <div class="settings-actions local-storage-actions">
+        <button id="settingsOpenLocalFolder" class="wide-btn" type="button">Open Folder</button>
+      </div>
+    </div>
+
+    <div class="settings-section" id="backupsSection">
+      <div class="section-title">Cloud Backup</div>
+      <div id="webdavBackupSection" class="cloud-backup-one-view">
+        <div class="settings-note cloud-backup-intro">Store a copy of your StashLibrary library in the cloud. StashLibrary only uploads when you click <strong>Back Up Now</strong>.</div>
+
+        <div id="webdavDisconnectedView">
+          <label class="field-label" for="webdavProvider">Cloud provider</label>
+          <select id="webdavProvider">
+            <option value="">Choose provider…</option>
+            <option value="koofr">Koofr</option>
+          </select>
+          <div id="webdavServerRow" hidden>
+            <label class="field-label" for="webdavUrl">WebDAV address</label>
+            <input id="webdavUrl" class="settings-text-input" type="url" spellcheck="false" autocomplete="off" placeholder="https://cloud.example.com/...">
+          </div>
+          <label class="field-label" for="webdavUsername">Username or email</label>
+          <input id="webdavUsername" class="settings-text-input" type="text" spellcheck="false" autocomplete="username">
+          <label id="webdavPasswordLabel" class="field-label" for="webdavPassword">Password / app password</label>
+          <input id="webdavPassword" class="settings-text-input" type="password" autocomplete="current-password">
+          <div id="webdavProviderHelp" class="settings-note compact-section-note">Choose a provider to continue.</div>
+          <button id="webdavConnect" class="wide-btn" type="button">Configure Cloud Backup</button>
+        </div>
+
+        <div id="webdavConnectedView" hidden>
+          <div id="webdavSafetyHold" class="cloud-safety-hold" hidden>
+            <strong>Existing cloud backup protected</strong>
+            <span id="webdavSafetyHoldText">This computer has an empty StashLibrary library, so StashLibrary will not let it replace the existing cloud backup.</span>
+            <span class="settings-note cloud-safety-file-restore-note">To recover that backup, use <strong>Restore from Cloud Backup</strong> from the ⋯ menu. StashLibrary downloads and verifies the connected cloud backup before replacing the local library.</span>
+          </div>
+          <div class="cloud-backup-primary-actions">
+            <button id="webdavBackupNow" class="cloud-backup-connected-button" type="button">
+              <span id="webdavBackupActionLabel" class="cloud-backup-action-label">Back Up Now…</span>
+              <span class="cloud-backup-action-account"><span id="webdavConnectedProvider">WebDAV</span><span id="webdavConnectedAccount"></span></span>
+            </button>
+            <div class="cloud-backup-menu-wrap">
+              <button id="webdavMoreActions" class="cloud-backup-more-button" type="button" aria-label="More cloud backup actions" title="More cloud backup actions" aria-haspopup="menu" aria-expanded="false">⋯</button>
+              <div id="webdavMoreMenu" class="cloud-backup-more-menu" role="menu" hidden>
+                <button id="webdavRestore" type="button" role="menuitem">Restore from Cloud Backup…</button>
+                <button id="webdavRecoverKoofrZip" type="button" role="menuitem" hidden>Recover Legacy Koofr ZIP…</button>
+                <button id="webdavDisconnect" type="button" role="menuitem">Disconnect…</button>
+              </div>
+            </div>
+          </div>
+          <div id="webdavBackupError" class="settings-note cloud-backup-error" role="alert" aria-live="polite" hidden></div>
+          <div id="webdavProgress" class="cloud-backup-progress" hidden aria-live="polite">
+            <div class="cloud-backup-progress-head">
+              <span id="webdavProgressStage">Cloud Backup</span>
+              <span id="webdavProgressPercent">0%</span>
+            </div>
+            <div class="cloud-backup-progress-track" role="progressbar" aria-label="Cloud Backup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div id="webdavProgressFill" class="cloud-backup-progress-fill"></div>
+            </div>
+            <div id="webdavProgressDetail" class="cloud-backup-progress-detail"></div>
+            <div id="webdavWorkerProgress" class="cloud-transfer-workers" hidden></div>
+          </div>
+          <div id="webdavLastBackup" class="settings-info compact cloud-backup-time">Last backup: Never</div>
+          <div id="webdavLastRunSummary" class="settings-note compact cloud-backup-last-run" hidden></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section" id="manualBackupSection">
+      <div class="section-title">Manual Backup</div>
+      <div class="settings-note cloud-backup-intro">Manual backups can be opened without StashLibrary and contain all the catalogue data needed for a complete restore.</div>
+      <div class="cloud-backup-primary-actions">
+        <button id="manualBackupCreate" class="cloud-backup-connected-button" type="button" aria-label="Create Manual Backup">
+          <span class="cloud-backup-action-label">Create Manual Backup…</span>
+
+        </button>
+        <div class="cloud-backup-menu-wrap manual-backup-menu-wrap">
+          <button id="manualBackupMoreActions" class="cloud-backup-more-button" type="button" aria-label="More manual backup actions" title="More manual backup actions" aria-haspopup="menu" aria-expanded="false">⋯</button>
+          <div id="manualBackupMoreMenu" class="cloud-backup-more-menu" role="menu" hidden>
+            <button id="manualBackupRestore" type="button" role="menuitem">Restore Manual Backup…</button>
+          </div>
+        </div>
+      </div>
+      <div id="manualBackupProgress" class="cloud-backup-progress manual-backup-progress" hidden aria-live="polite">
+        <div class="cloud-backup-progress-head">
+          <span id="manualBackupProgressStage">Manual Backup</span>
+          <span id="manualBackupProgressPercent">0%</span>
+        </div>
+        <div class="cloud-backup-progress-track" role="progressbar" aria-label="Manual Backup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="manualBackupProgressFill" class="cloud-backup-progress-fill"></div>
+        </div>
+        <div id="manualBackupProgressDetail" class="cloud-backup-progress-detail"></div>
+      </div>
+      <div id="manualBackupResult" class="settings-note compact cloud-backup-last-run" hidden></div>
+    </div>
+    <div class="settings-section compact-actions-section" id="quickActionsSection">
+      <div class="section-title">Actions</div>
+      <div class="settings-actions compact-action-grid quick-actions-grid">
+        <button id="zoteroLoad">Zotero Migration…</button>
+        <button id="configureKeyboardShortcuts">Keyboard Shortcuts…</button>
+        <button id="scanRepair">Check &amp; Repair Library…</button>
+        <button id="openFaviconsDialog" type="button">Favicons…</button>
+        <button id="reportBugBtn" class="support-action">Report a Bug</button>
+        <button id="donateBtn" class="support-action">Support the Project</button>
+      </div>
+      <button id="openUninstallComponents" class="wide-btn uninstall-action-wide" type="button">Uninstall StashLibrary…</button>
+    </div>
+
+  </div>
+</section>
+
+
+<div id="onboardingModal" class="zdest-overlay onboarding-overlay" hidden>
+  <div class="zdest-dialog onboarding-dialog setup-wizard-dialog" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <div class="onboarding-header">
+      <div>
+        <div class="onboarding-kicker">Welcome to StashLibrary</div>
+        <strong id="onboardingTitle">Set up StashLibrary</strong>
+      </div>
+      <button id="onboardingCloseX" class="onboarding-close-x" type="button" aria-label="Close Setup" title="Close Setup" hidden>×</button>
+    </div>
+
+    <div class="setup-wizard-pages">
+      <section class="setup-wizard-page" data-setup-slide="0">
+        <div class="how-to-illustration save-illustration" aria-hidden="true"><div class="howto-browser-bar">Webpage / PDF</div><div class="howto-action-pill">Add to StashLibrary</div><div class="howto-arrow">↓</div><div class="howto-file-card">Stable HTML / PDF bookmark</div></div>
+        <h3>Save reading locally</h3>
+        <p>Use <strong>Add to StashLibrary</strong> to keep a stable local HTML or PDF copy while retaining the original source link and accessed date.</p>
+        <div class="setup-installed-note">StashLibrary for Firefox <span id="onboardingExtensionStatus">v0.1.0 · Installed</span></div>
+      </section>
+      <section class="setup-wizard-page" data-setup-slide="1" hidden>
+        <div class="how-to-illustration organise-illustration" aria-hidden="true"><div class="howto-folder">▾ Reading</div><div class="howto-folder child">▸ Climate</div><div class="howto-bookmark">◉ Paper on climate modelling</div><div class="howto-folder child">▸ Politics</div></div>
+        <h3>Organise like bookmarks</h3>
+        <p>Create folders, drag and reorder items, and keep your reading organised with the speed of browser bookmarks.</p>
+      </section>
+      <section class="setup-wizard-page" data-setup-slide="2" hidden>
+        <div class="how-to-illustration zotero-illustration" aria-hidden="true"><div class="howto-file-card">Saved StashLibrary item</div><div class="howto-arrow horizontal">→</div><div class="howto-zotero-card"><b>Z</b><span>Zotero</span></div><div class="howto-meta">Source link + Accessed date</div></div>
+        <h3>Send reading to Zotero</h3>
+        <p>Send current or archived items to Zotero when you are ready. StashLibrary preserves the original source link and accessed date.</p>
+      </section>
+      <section class="setup-wizard-page" data-setup-slide="3" hidden>
+        <div class="how-to-illustration files-illustration" aria-hidden="true"><div class="howto-folder-large">📁 StashLibrary</div><div class="howto-file-row">HTML &nbsp; saved-page.html</div><div class="howto-file-row">PDF &nbsp;&nbsp; paper.pdf</div></div>
+        <h3>Your files stay accessible</h3>
+        <p>Your saved HTML/PDF files and StashLibrary catalogue stay together in the local StashLibrary folder you choose, so the folder can be copied as a complete local library.</p>
+      </section>
+
+      <section class="setup-wizard-page setup-component-page" data-setup-slide="4" hidden>
+        <div class="setup-component-mark" aria-hidden="true"><img src="icons/stashlibrary-48.png" alt=""></div>
+        <h3>Install the Windows Integration</h3>
+        <p>Firefox cannot save directly into your local archive by itself. StashLibrary uses a small Windows integration for local file access. It is updated together with the matching StashLibrary release.</p>
+        <div class="setup-component-card onboarding-check" id="onboardingHelperCheck">
+          <div class="onboarding-check-icon" aria-hidden="true">○</div>
+          <div class="onboarding-check-body">
+            <div class="onboarding-check-title">StashLibrary Helper</div>
+            <div id="onboardingHelperStatus" class="onboarding-check-status">Checking…</div>
+            <div class="onboarding-check-help">The installer also prepares your StashLibrary storage folder. Your archive remains ordinary files on your computer.</div>
+          </div>
+        </div>
+        <button id="onboardingInstallHelper" class="setup-primary-action" type="button">Install StashLibrary Helper…</button>
+        <div class="setup-install-help">The button opens StashLibrary's GitHub Releases page. Run <strong>StashLibrary-Windows-Helper.exe</strong>, then return to Firefox.</div>
+      </section>
+
+      <section class="setup-wizard-page setup-component-page" data-setup-slide="5" hidden>
+        <div class="setup-component-mark zotero-mark" aria-hidden="true">Z</div>
+        <h3>Install the Zotero Helper</h3>
+        <p>This connects StashLibrary to Zotero so you can send archived reading into your Zotero library and migrate Zotero folders back into StashLibrary.</p>
+        <div class="setup-component-card onboarding-check" id="onboardingZoteroCheck">
+          <div class="onboarding-check-icon" aria-hidden="true">○</div>
+          <div class="onboarding-check-body">
+            <div class="onboarding-check-title">Zotero Helper</div>
+            <div id="onboardingZoteroStatus" class="onboarding-check-status">Checking…</div>
+            <div class="onboarding-check-help">Keep Zotero open while StashLibrary checks the connection.</div>
+          </div>
+        </div>
+        <button id="onboardingInstallZotero" class="setup-primary-action" type="button">Install Zotero Helper…</button>
+        <div id="onboardingZoteroOptional" class="setup-install-help">On the Releases page download <strong>StashLibrary-Zotero-Helper.xpi</strong>. In Zotero use <strong>Tools → Plugins → gear → Install Plugin From File…</strong>, then restart Zotero.</div>
+      </section>
+
+      
+    </div>
+
+    <div id="onboardingFooterNote" hidden></div>
+    <div class="setup-wizard-nav">
+      <button id="onboardingPrev" type="button" aria-label="Previous setup page">←</button>
+      <div id="onboardingProgress" class="how-to-progress">1 / 6</div>
+      <button id="onboardingNext" type="button" aria-label="Next setup page">Next</button>
+    </div>
+  </div>
+</div>
+
+<div id="repairModal" class="zdest-overlay" hidden>
+  <div class="zdest-dialog repair-modal" role="dialog" aria-modal="true" aria-labelledby="repairTitle">
+    <div class="zdest-header">
+      <strong id="repairTitle">Check &amp; Repair Library</strong>
+      <button id="repairCloseX" class="stashlibrary-close-x" type="button" aria-label="Close" title="Close">×</button>
+    </div>
+
+    <div class="repair-toolbar">
+      <button id="repairRescanResync">Check Library Again</button>
+      <button id="copyDebugLog" type="button">Copy Support Information</button>
+      <div id="repairScanSummary" class="repair-scan-summary"></div>
+    </div>
+
+    <div class="repair-columns">
+      <section class="repair-column">
+        <div class="repair-column-title">Bookmarks Missing Their Saved File</div>
+        <div class="repair-column-help">Bookmarks whose saved PDF or webpage cannot be found.</div>
+        <div id="repairRecordsWithoutFiles" class="repair-list"></div>
+      </section>
+
+      <section class="repair-column">
+        <div class="repair-column-title">Saved Files Missing a Bookmark</div>
+        <div class="repair-column-help">Saved PDFs or webpages that do not appear in your StashLibrary folders.</div>
+        <div id="repairFilesWithoutRecords" class="repair-list"></div>
+      </section>
+    </div>
+
+    <div id="repairMetadataIssues" class="repair-metadata-area" hidden>
+      <div class="repair-column-title">Bookmark Details to Update</div>
+      <div id="repairMetadataList" class="repair-list compact"></div>
+    </div>
+
+    <div class="repair-audit-area">
+      <div class="repair-audit-heading">
+        <div>
+          <div class="repair-column-title">Recent Activity</div>
+          <div class="repair-column-help">Recent saves, imports, and anything that may need your attention.</div>
+        </div>
+        <button id="repairClearAudit" type="button">Clear History</button>
+      </div>
+      <div id="repairSaveAudit" class="repair-list compact"></div>
+    </div>
+  </div>
+</div>
+
+<div id="zoteroMigrationModal" class="zdest-overlay" hidden>
+  <div class="zdest-dialog zmig-dialog">
+    <div class="zdest-header">
+      <strong>Choose Zotero Folders/Files</strong>
+      <button id="zmigClose" class="stashlibrary-close-x" type="button" aria-label="Close" title="Close">×</button>
+    </div>
+    <div id="zmigStatus" class="zdest-status">Loading Zotero library…</div>
+    <div class="zdest-actions zmig-actions zmig-top-actions">
+      <button id="zoteroSelectAll" disabled>Select All</button>
+      <button id="zoteroSelectNone" disabled>Select None</button>
+
+      <div class="zmig-destination-picker">
+        <button id="zmigDestinationButton" class="zmig-destination-button" type="button" aria-expanded="false">
+          Migrate Into: <span id="zmigDestinationSummary">StashLibrary root</span> <span aria-hidden="true">▾</span>
+        </button>
+        <div id="zmigDestinationTree" class="zmig-destination-tree" hidden>
+          <div class="zmig-destination-toolbar">
+            <span class="zmig-tree-links">
+              <button id="zmigDestExpandAll" class="zmig-text-action" type="button">Expand All</button>
+              <span aria-hidden="true">·</span>
+              <button id="zmigDestCollapseAll" class="zmig-text-action" type="button">Collapse All</button>
+            </span>
+          </div>
+          <div id="zmigDestinationTreeBody"></div>
+          <div class="zmig-destination-confirm">
+            <span id="zmigDestinationPending">StashLibrary root</span>
+            <div class="zmig-destination-confirm-actions">
+              <button id="zmigDestinationClose" type="button">Close</button>
+              <button id="zmigDestinationSelect" type="button">Select</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="zoteroRefresh" class="zmig-refresh-icon" type="button"
+              aria-label="Refresh Zotero database" title="Refresh Zotero database">↻</button>
+    </div>
+
+    <div class="zmig-source-block">
+      <div class="zmig-inline-tree-tools">
+        <span>Zotero Folders/Files</span>
+        <span class="zmig-tree-links">
+          <button id="zoteroExpandAll" class="zmig-text-action" type="button" disabled>Expand All</button>
+          <span aria-hidden="true">·</span>
+          <button id="zoteroCollapseAll" class="zmig-text-action" type="button" disabled>Collapse All</button>
+        </span>
+      </div>
+      <div id="zoteroPicker" class="zotero-picker zmig-picker" hidden></div>
+    </div>
+
+    <div class="zdest-buttons">
+      <button id="zmigCancel">Close</button>
+      <button id="zoteroMigrate" disabled>Migrate Selected Items</button>
+    </div>
+  </div>
+</div>
+
+<div id="stashlibraryDestinationModal" class="zdest-overlay" hidden>
+  <div class="zdest-dialog">
+    <div class="zdest-header"><strong>Choose StashLibrary Folder</strong><button id="ldestClose" class="zdest-x" aria-label="Close">×</button></div>
+    <div id="ldestStatus" class="zdest-status">Choose where to save the current page or PDF.</div>
+    <div class="zdest-actions"><button id="ldestExpand">Expand All</button><button id="ldestCollapse">Collapse All</button></div>
+    <div id="ldestTree" class="zdest-tree" role="tree"></div>
+    <div class="zdest-selected">Selected: <strong id="ldestSelected">None</strong></div>
+    <div class="zdest-buttons"><button id="ldestCancel">Cancel</button><button id="ldestSave" disabled>Save</button></div>
+  </div>
+</div>
+
+<div id="zoteroDestinationModal" class="zdest-overlay" hidden>
+  <div class="zdest-dialog">
+    <div class="zdest-header"><strong>Choose Zotero Folder</strong><button id="zdestClose" class="zdest-x" aria-label="Close">×</button></div>
+    <div id="zdestStatus" class="zdest-status">Loading Zotero folders…</div>
+    <div class="zdest-actions"><button id="zdestExpand">Expand All</button><button id="zdestCollapse">Collapse All</button></div>
+    <div id="zdestTree" class="zdest-tree" role="tree"></div>
+    <div class="zdest-selected">Selected: <strong id="zdestSelected">None</strong></div>
+    <div class="zdest-buttons"><button id="zdestCancel">Cancel</button><button id="zdestSave" disabled>Save</button></div>
+  </div>
+</div>
+
+<div id="keyboardShortcutsModal" class="zdest-overlay" hidden>
+  <div class="shortcut-dialog" role="dialog" aria-modal="true" aria-labelledby="keyboardShortcutsTitle">
+    <div class="zdest-title-row">
+      <h3 id="keyboardShortcutsTitle">Keyboard Shortcuts</h3>
+      <button id="keyboardShortcutsCloseX" class="stashlibrary-close-x" type="button" aria-label="Close" title="Close">×</button>
+    </div>
+    <div class="shortcut-top-actions">
+      <button id="shortcutRevertAll" type="button">Revert All</button>
+    </div>
+    <div id="shortcutRows" class="shortcut-rows" role="listbox" aria-label="Keyboard shortcuts"></div>
+    <div id="shortcutEditArea" class="shortcut-edit-area" hidden>
+      <div id="shortcutEditLabel" class="shortcut-edit-label"></div>
+      <input id="shortcutCaptureInput" type="text" readonly placeholder="Press a shortcut">
+      <div class="shortcut-edit-actions">
+        <button id="shortcutEditClear">Clear</button>
+        <button id="shortcutEditReset">Revert</button>
+        <button id="shortcutEditSave">Save</button>
+      </div>
+      <div id="shortcutEditStatus" class="settings-note"></div>
+    </div>
+  </div>
+</div>
+
+
+<div id="faviconsDialog" class="zdest-overlay" hidden>
+  <div class="zdest-dialog favicons-dialog" role="dialog" aria-modal="true" aria-labelledby="faviconsDialogTitle">
+    <div class="zdest-header">
+      <h3 id="faviconsDialogTitle">Favicons</h3>
+      <button id="faviconsDialogCloseX" class="stashlibrary-close-x" type="button" aria-label="Close" title="Close">×</button>
+    </div>
+    <p class="settings-note favicons-dialog-intro">Refresh Favicons checks each bookmark's website for a newer icon. When a new icon is found, StashLibrary saves it for offline use. If a website is unavailable or no replacement can be downloaded, StashLibrary keeps the existing favicon.</p>
+    <div class="settings-actions vertical favicons-dialog-actions">
+      <button id="refreshFavicons" type="button">Refresh Favicons</button>
+    </div>
+    <div id="thumbnailGenerationStatus" class="settings-note compact-section-note">Existing favicons are never removed when a refresh fails.</div>
+  </div>
+</div>
+
+<div id="stashlibraryDialogModal" class="zdest-overlay" hidden>
+  <div class="zdest-dialog stashlibrary-dialog" role="dialog" aria-modal="true" aria-labelledby="stashlibraryDialogTitle">
+    <div class="zdest-header">
+      <h3 id="stashlibraryDialogTitle">StashLibrary</h3>
+      <button id="stashlibraryDialogCloseX" class="stashlibrary-close-x" type="button" aria-label="Close" title="Close">×</button>
+    </div>
+    <div class="stashlibrary-dialog-body">
+      <div id="stashlibraryDialogMessage" class="stashlibrary-dialog-message"></div>
+      <label id="stashlibraryDialogInputWrap" class="stashlibrary-dialog-input-wrap" hidden>
+        <span id="stashlibraryDialogInputLabel"></span>
+        <input id="stashlibraryDialogInput" type="text" autocomplete="off">
+      </label>
+    </div>
+    <div class="zdest-buttons stashlibrary-dialog-buttons">
+      <button id="stashlibraryDialogCancel" type="button">Cancel</button>
+      <button id="stashlibraryDialogConfirm" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="uninstallComponentsModal" class="zdest-overlay" hidden>
+  <div class="uninstall-components-dialog" role="dialog" aria-modal="true" aria-labelledby="uninstallComponentsTitle">
+    <div class="zdest-title-row">
+      <h3 id="uninstallComponentsTitle">Uninstall StashLibrary</h3>
+      <button id="uninstallComponentsCloseX" class="stashlibrary-close-x" type="button" aria-label="Close" title="Close">×</button>
+    </div>
+    <p class="settings-note uninstall-preserve-note"><strong>Your StashLibrary data will be kept.</strong> Saved HTML/PDF files, the StashLibrary database, settings, and backups are stored separately and are not deleted by removing these components.</p>
+    <div class="uninstall-component-list">
+      <div><div><strong>Zotero Helper</strong><span>In Zotero open Tools → Plugins, select StashLibrary Zotero Helper, and remove it.</span></div><span class="manual-badge">In Zotero</span></div>
+      <div><div><strong>Windows integration</strong><span>Provides local file access in the background.</span></div><button id="uninstallWindowsHelperBtn" type="button">Uninstall…</button></div>
+      <div><div><strong>StashLibrary for Firefox</strong><span>Remove the Firefox extension last so this uninstall screen remains available.</span></div><button id="uninstallFirefoxExtensionBtn" type="button">Remove…</button></div>
+    </div>
+    <div id="uninstallComponentsStatus" class="settings-note"></div>
+  </div>
+</div>
+
+<div id="bookmarkUrlPreview" class="bookmark-url-preview" aria-live="polite"></div>
+<script src="popup.js"></script></body></html>
