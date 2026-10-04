@@ -961,7 +961,7 @@ function registerMigrationEndpoints() {
         supportedMethods: ["POST", "GET"],
         supportedDataTypes: ["application/json", "text/plain"],
         init: async function(requestData, sendResponseCallback) {
-            sendResponseCallback(200, "application/json", JSON.stringify({ok:true, version:"0.1.0", protocolVersion:1}));
+            sendResponseCallback(200, "application/json", JSON.stringify({ok:true, version:"0.1.1", protocolVersion:1}));
         }
     });
     registerEndpoint("/local-file-connector/update", {

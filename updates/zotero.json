@@ -3,8 +3,8 @@
     "local-file-connector-helper-v088@chatgpt.local": {
       "updates": [
         {
-          "version": "0.1.0",
-          "update_link": "https://github.com/CrowCosmos/StashLibrary/releases/download/v0.1.0/StashLibrary-Zotero-Helper.xpi",
+          "version": "0.1.1",
+          "update_link": "https://github.com/CrowCosmos/StashLibrary/releases/download/v0.1.1/StashLibrary-Zotero-Helper.xpi",
           "applications": {
             "zotero": {
               "strict_min_version": "9.0",

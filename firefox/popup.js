@@ -1213,7 +1213,7 @@ const STASHLIBRARY_ZOTERO_HELPER_URL='https://github.com/CrowCosmos/StashLibrary
 const STASHLIBRARY_PROTOCOL_VERSION=1;
 const STASHLIBRARY_VERSION=browser.runtime.getManifest().version;
 const STASHLIBRARY_COMPONENT_VERSION=STASHLIBRARY_VERSION;
-const REQUIRED_WINDOWS_HELPER_VERSION='0.1.0';
+const REQUIRED_WINDOWS_HELPER_VERSION='0.1.1';
 const STASHLIBRARY_RELEASES_URL='https://github.com/CrowCosmos/StashLibrary/releases';
 const STASHLIBRARY_LATEST_RELEASE_URL='https://github.com/CrowCosmos/StashLibrary/releases/latest';
 const STASHLIBRARY_RELEASE_MANIFEST_URL='https://crowcosmos.github.io/StashLibrary/updates/release.json';
@@ -2001,7 +2001,7 @@ async function refreshSettingsInfo(){
 
   try{renderWebdavBackupInfo(await send({cmd:'webdav_info'}));}
   catch(_){
-    const error=document.querySelector('#webdavBackupError');if(error){error.hidden=false;error.textContent='Cloud Backup requires StashLibrary Helper 0.1.0.';}
+    const error=document.querySelector('#webdavBackupError');if(error){error.hidden=false;error.textContent='Cloud Backup requires StashLibrary Helper 0.1.1.';}
   }
 
   setBackupRunning(!!info.backupActive||!!info.webdav?.backupActive);

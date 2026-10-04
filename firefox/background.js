@@ -1,7 +1,7 @@
 const HOST='stashlibrary.host';
 const EXPECTED_STASHLIBRARY_VERSION=browser.runtime.getManifest().version;
 const STASHLIBRARY_PROTOCOL_VERSION=1;
-const REQUIRED_WINDOWS_HELPER_VERSION='0.1.0';
+const REQUIRED_WINDOWS_HELPER_VERSION='0.1.1';
 let port=null, listeners=new Set(), verifiedNativeProtocol=null, nativeAutoReconnect=true, manualReconnectInProgress=false;
 let webdavJob={active:false,kind:'',startedAt:0,finishedAt:0,result:null,error:''};
 

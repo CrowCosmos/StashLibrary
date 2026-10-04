@@ -1,6 +1,6 @@
 <h1 align="center">
   <img src="assets/stashlibrary-logo-512.png" alt="StashLibrary logo" width="96" align="middle">
-  StashLibrary <sub>0.1.0</sub>
+  StashLibrary <sub>0.1.1</sub>
   <br>
   <a href="https://github.com/CrowCosmos/StashLibrary/releases/latest/download/stashlibrary-firefox.xpi">
     <img src="https://img.shields.io/badge/Download_for_Firefox-FF7139?logo=firefoxbrowser&logoColor=white" alt="Download for Firefox">

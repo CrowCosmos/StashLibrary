@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "StashLibrary",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local Bookmarks + Zotero Integration. Save stable PDF/HTML bookmarks with original links and accessed dates preserved for Zotero.",
   "browser_specific_settings": {
     "gecko": {

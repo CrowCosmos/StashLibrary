@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	stashLibraryVersion = "0.1.0"
+	stashLibraryVersion = "0.1.1"
 	pythonURL           = "https://www.python.org/ftp/python/3.13.13/python-3.13.13-embed-amd64.zip"
 	pythonSHA256        = "8766a8775746235e23cf5aee5027ab1060bb981d93110577adcf3508aa0cbd55"
 	nativeHostName      = "stashlibrary.host"
