@@ -1,7 +1,7 @@
 ---
-name: Bug report
-about: Report a problem with ZStasher
-title: ""
+name: StashLibrary bug report
+about: Report a problem with StashLibrary
+title: "[Bug]: "
 labels: bug
 assignees: "CrowCosmos"
 ---
@@ -22,14 +22,14 @@ What did you expect to happen instead?
 
 ## Screenshots or error messages
 
-If applicable, add screenshots or copy any error messages shown by ZStasher.
+If applicable, add screenshots or copy any error messages shown by StashLibrary.
 
 ## Environment
 
 - **Windows version:**
 - **Firefox version:**
 - **Firefox extension version:**
-- **ZStasher Windows Helper version:**
+- **StashLibrary Windows Helper version:**
 - **Zotero version (if relevant):**
 - **Zotero Helper version (if relevant):**
 

@@ -1,5 +1,5 @@
 // Project links are kept together here so release maintainers can update them easily.
-const REPORT_BUG_URL='https://github.com/CrowCosmos/StashLibrary/issues/new/choose';
+const REPORT_BUG_URL='https://github.com/CrowCosmos/StashLibrary/issues/new?template=bug_report.md';
 const SUPPORT_PROJECT_URL='https://github.com/sponsors/CrowCosmos';
 const root=document.querySelector('#root'), statusEl=document.querySelector('#status'), ctx=document.querySelector('#ctx'), settingsPanel=document.querySelector('#settingsPanel');
 let tree=null, openPanels=[], clipboard=null, dragState=null, refreshTimer=null, dragHoverTimer=null, dragHoverPath=null;
