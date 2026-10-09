@@ -280,13 +280,16 @@ async function runThumbnailGeneration(){
 async function openLatestStashLibraryRelease(){
   try{await browser.tabs.create({url:STASHLIBRARY_LATEST_RELEASE_URL});}catch(_){ }
 }
-async function openLatestWindowsHelperInstaller(){
+async function downloadLatestWindowsHelperInstaller(){
   const release=await fetchStashLibraryReleaseManifest(true);
+  if(release?.offline)throw new Error(release.error||'The update manifest could not be reached.');
   const url=String(release?.windows_setup_url||'').trim();
-  if(/^https:\/\//i.test(url)){
-    try{await browser.tabs.create({url});return}catch(_){ }
-  }
-  await openLatestStashLibraryRelease();
+  if(!/^https:\/\//i.test(url))throw new Error('The release does not provide a secure Windows helper download.');
+  const version=String(release?.windows_helper_version||release?.component_version||release?.version||'').trim();
+  const reply=await browser.runtime.sendMessage({type:'stashlibrary-stage-windows-update',url,version});
+  if(!reply?.ok||!Number.isInteger(reply.downloadId))throw new Error(reply?.error||'Firefox could not download the Windows helper.');
+  stashlibraryStagedWindowsDownloadId=reply.downloadId;
+  return {message:`StashLibrary Windows Helper ${version||''} has been downloaded. Open Firefox Downloads and run the installer. This message will close automatically when the compatible helper is detected.`};
 }
 let activeRepairPoll=null;
 function stopActiveRepairPoll(){
@@ -306,11 +309,14 @@ async function showBlockingComponentRepair({kind,title,message,confirmLabel,chec
     cancelLabel:'',
     blocking:true,
     onConfirm:async()=>{
-      // Keep the repair surface open. Opening the release page may cause the
-      // toolbar popup itself to close; if that happens the same repair surface
-      // is shown again on the next open until health detection succeeds.
-      setStashLibraryDialogMessage(`${message} The installer/download page has been opened. StashLibrary will close this message automatically once ${kind} is detected and compatible.`);
-      await onConfirm();
+      // Keep the repair surface open while the companion is installed. Actions
+      // may either open an external installer page or download one directly.
+      try{
+        const result=await onConfirm();
+        setStashLibraryDialogMessage(result?.message||`${message} Complete the installation. StashLibrary will close this message automatically once ${kind} is detected and compatible.`);
+      }catch(error){
+        setStashLibraryDialogMessage(`Download failed: ${error?.message||String(error)}`);
+      }
     }
   });
   const poll=async()=>{
@@ -334,7 +340,7 @@ async function showHelperReinstallPrompt(){
     title:'StashLibrary Helper not detected',
     message:'StashLibrary cannot detect a compatible Windows helper. Install or reinstall StashLibrary Windows Helper to continue.',
     confirmLabel:'Install StashLibrary Helper',
-    onConfirm:openLatestWindowsHelperInstaller,
+    onConfirm:downloadLatestWindowsHelperInstaller,
     checkReady:async()=>{
       const info=await send({cmd:'backup_info'});
       const version=String(info?.hostVersion||'').trim();
@@ -5244,9 +5250,14 @@ document.querySelector('#onboardingInstallHelper')?.addEventListener('click',asy
   // stay open while the native helper is replaced.
   try{await browser.runtime.sendMessage({type:'native-pause'});}catch(_){}
   helperMismatchPaused=true;
-  setOnboardingCheck('#onboardingHelperCheck',false,'Waiting for StashLibrary Helper…',false);
+  setOnboardingCheck('#onboardingHelperCheck',false,'Downloading StashLibrary Helper…',false);
   startOnboardingHelperPolling({immediate:false});
-  openSupportLink(STASHLIBRARY_WINDOWS_HELPER_URL,'StashLibrary Helper');
+  try{
+    const result=await downloadLatestWindowsHelperInstaller();
+    setOnboardingCheck('#onboardingHelperCheck',false,result?.message||'Downloaded — open Firefox Downloads and run the installer.',false);
+  }catch(error){
+    setOnboardingCheck('#onboardingHelperCheck',false,`Download failed — ${error?.message||String(error)}`,true);
+  }
 });
 document.querySelector('#onboardingInstallZotero')?.addEventListener('click',async()=>{
   zoteroInstallAttempted=true;
