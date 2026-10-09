@@ -843,7 +843,13 @@ async function stageStashLibraryWindowsUpdate(url,version){
   const safeVersion=String(version||'latest').replace(/[^0-9A-Za-z._-]+/g,'_');
   const filename=`StashLibrary Updates/StashLibrary-Windows-Helper-${safeVersion}.exe`;
   const existing=await browser.downloads.search({url:String(url),state:'complete',limit:5}).catch(()=>[]);
-  if(existing?.length)return {ok:true,downloadId:existing[0].id,alreadyDownloaded:true};
+  // The stable /latest/download URL is reused by every release. Never reuse a
+  // completed download from an older version merely because its source URL is
+  // identical; that would silently reinstall the old helper after Firefox has
+  // already advanced. Our versioned target filename is the cache identity.
+  const expectedSuffix=filename.replace(/\//g,'\\').toLowerCase();
+  const matching=existing?.find(row=>String(row?.filename||'').replace(/\//g,'\\').toLowerCase().endsWith(expectedSuffix));
+  if(matching)return {ok:true,downloadId:matching.id,alreadyDownloaded:true};
   const downloadId=await browser.downloads.download({url:String(url),filename,conflictAction:'overwrite',saveAs:false});
   return await new Promise(resolve=>{
     let finished=false;

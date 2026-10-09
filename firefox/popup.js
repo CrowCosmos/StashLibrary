@@ -280,6 +280,14 @@ async function runThumbnailGeneration(){
 async function openLatestStashLibraryRelease(){
   try{await browser.tabs.create({url:STASHLIBRARY_LATEST_RELEASE_URL});}catch(_){ }
 }
+async function openLatestWindowsHelperInstaller(){
+  const release=await fetchStashLibraryReleaseManifest(true);
+  const url=String(release?.windows_setup_url||'').trim();
+  if(/^https:\/\//i.test(url)){
+    try{await browser.tabs.create({url});return}catch(_){ }
+  }
+  await openLatestStashLibraryRelease();
+}
 let activeRepairPoll=null;
 function stopActiveRepairPoll(){
   if(activeRepairPoll){clearInterval(activeRepairPoll);activeRepairPoll=null;}
@@ -288,7 +296,7 @@ function setStashLibraryDialogMessage(message){
   const el=document.querySelector('#stashlibraryDialogMessage');
   if(el)el.textContent=message;
 }
-async function showBlockingComponentRepair({kind,title,message,confirmLabel,checkReady}){
+async function showBlockingComponentRepair({kind,title,message,confirmLabel,checkReady,onConfirm=openLatestStashLibraryRelease}){
   stopActiveRepairPoll();
   let checking=false;
   const promise=showStashLibraryDialog({
@@ -302,7 +310,7 @@ async function showBlockingComponentRepair({kind,title,message,confirmLabel,chec
       // toolbar popup itself to close; if that happens the same repair surface
       // is shown again on the next open until health detection succeeds.
       setStashLibraryDialogMessage(`${message} The installer/download page has been opened. StashLibrary will close this message automatically once ${kind} is detected and compatible.`);
-      await openLatestStashLibraryRelease();
+      await onConfirm();
     }
   });
   const poll=async()=>{
@@ -326,6 +334,7 @@ async function showHelperReinstallPrompt(){
     title:'StashLibrary Helper not detected',
     message:'StashLibrary cannot detect a compatible Windows helper. Install or reinstall StashLibrary Windows Helper to continue.',
     confirmLabel:'Install StashLibrary Helper',
+    onConfirm:openLatestWindowsHelperInstaller,
     checkReady:async()=>{
       const info=await send({cmd:'backup_info'});
       const version=String(info?.hostVersion||'').trim();
@@ -1829,9 +1838,41 @@ async function fetchStashLibraryReleaseManifest(force=false){
   }
 }
 function releaseComponentVersion(release){return String(release?.component_version||release?.version||'').trim();}
-async function stageWindowsUpdateIfNeeded(release){
+function expectedReleaseVersions(release){
+  const fallback=releaseComponentVersion(release);
+  return {
+    firefox:String(release?.firefox_version||fallback).trim(),
+    windows:String(release?.windows_helper_version||fallback).trim(),
+    zotero:String(release?.zotero_version||fallback).trim()
+  };
+}
+async function readInstalledComponentVersions(nativeInfo=null){
+  let info=nativeInfo;
+  if(!info){try{info=await send({cmd:'backup_info'});}catch(_){info=null}}
+  let zotero=null;
+  if(info?.ok){try{zotero=await send({cmd:'zotero_status'});}catch(_){zotero=null}}
+  return {
+    firefox:STASHLIBRARY_VERSION,
+    windows:String(info?.hostVersion||'').trim(),
+    zotero:String(zotero?.helperVersion||'').trim(),
+    zoteroConnected:!!(zotero?.ok&&zotero?.connected)
+  };
+}
+function componentUpdateState(release,installed){
+  const expected=expectedReleaseVersions(release);
+  const behind=(actual,wanted)=>!!wanted&&(!actual||compareStashLibraryVersions(actual,wanted)<0);
+  return {
+    expected,installed,
+    firefox:behind(installed.firefox,expected.firefox),
+    windows:behind(installed.windows,expected.windows),
+    zotero:behind(installed.zotero,expected.zotero)
+  };
+}
+async function stageWindowsUpdateIfNeeded(release,nativeInfo=null){
   const releaseVersion=String(release?.version||release?.component_version||'').trim();
-  if(!releaseVersion||compareStashLibraryVersions(releaseVersion,STASHLIBRARY_VERSION)<=0)return null;
+  const wanted=expectedReleaseVersions(release).windows;
+  const actual=String(nativeInfo?.hostVersion||'').trim();
+  if(!releaseVersion||!wanted||(actual&&compareStashLibraryVersions(actual,wanted)>=0))return null;
   const url=String(release.windows_setup_url||'').trim();
   if(!url)return null;
   try{
@@ -1862,7 +1903,9 @@ async function refreshStashLibraryUpdateStatus(nativeInfo=null,{forceReleaseChec
     button.hidden=false;button.disabled=false;button.dataset.action='retry';button.textContent='Check again';
     return;
   }
-  const updateAvailable=compareStashLibraryVersions(releaseVersion,STASHLIBRARY_VERSION)>0;
+  const installed=await readInstalledComponentVersions(nativeInfo);
+  const componentState=componentUpdateState(release,installed);
+  const updateAvailable=componentState.firefox||componentState.windows||componentState.zotero;
   if(updateAvailable){
     // A newer release without its expected download URLs is not "available" in
     // a usable sense. Surface that as an error instead of claiming success.
@@ -1876,13 +1919,17 @@ async function refreshStashLibraryUpdateStatus(nativeInfo=null,{forceReleaseChec
       button.hidden=false;button.disabled=false;button.dataset.action='retry';button.textContent='Check again';
       return;
     }
-    summary.textContent='Update available';
+    const outdated=[];
+    if(componentState.firefox)outdated.push('Firefox');
+    if(componentState.windows)outdated.push('Windows helper');
+    if(componentState.zotero)outdated.push('Zotero');
+    summary.textContent=`Update available · ${outdated.join(', ')}`;
     button.hidden=false;
     button.disabled=false;
     button.dataset.action='install';
     button.textContent='Install latest update';
     if(stashlibraryStagedWindowsDownloadId==null && !stashlibraryWindowsStagePromise){
-      stashlibraryWindowsStagePromise=stageWindowsUpdateIfNeeded(release).finally(()=>{stashlibraryWindowsStagePromise=null;});
+      stashlibraryWindowsStagePromise=stageWindowsUpdateIfNeeded(release,{hostVersion:installed.windows}).finally(()=>{stashlibraryWindowsStagePromise=null;});
       stashlibraryWindowsStagePromise.catch(()=>{});
     }
   }else{
@@ -1913,14 +1960,31 @@ async function beginCoordinatedStashLibraryUpdate(){
   if(button){button.disabled=true;button.textContent='Preparing update…';}
   try{
     const release=await fetchStashLibraryReleaseManifest(true);
-    if(compareStashLibraryVersions(String(release.version||''),STASHLIBRARY_VERSION)<=0){
-      if(summary)summary.textContent=`Version ${STASHLIBRARY_VERSION} · Up to date`;
+    if(release?.offline)throw new Error(release.error||'The update manifest could not be reached.');
+    const installed=await readInstalledComponentVersions();
+    const componentState=componentUpdateState(release,installed);
+    if(!componentState.firefox&&!componentState.windows&&!componentState.zotero){
+      if(summary)summary.textContent=`Version ${release.version} · Up to date`;
       return;
     }
     const wantedVersion=releaseComponentVersion(release);
     if(wantedVersion&&wantedVersion===STASHLIBRARY_COMPONENT_VERSION){
       // Valid: StashLibrary build numbers can advance while host-required manifest versions stay separate.
     }
+    // A missing or old native helper cannot coordinate Zotero yet. Repair it
+    // first; reopening Settings after the installer finishes resumes the same
+    // release transaction and checks every component again.
+    if(componentState.windows){
+      if(stashlibraryStagedWindowsDownloadId==null){
+        const staged=await stageWindowsUpdateIfNeeded(release,{hostVersion:installed.windows});
+        if(staged==null)throw new Error('The Windows helper update could not be downloaded.');
+      }
+      try{browser.downloads.open(stashlibraryStagedWindowsDownloadId);}catch(_){ }
+      if(summary)summary.textContent=`Version ${release.version}: run the Windows helper installer, then reopen Settings to finish the remaining components.`;
+      if(button)button.textContent='Verify update';
+      return;
+    }
+
     let zr=null;
     try{zr=await send({cmd:'zotero_status'});}catch(_){ }
     if(!(zr?.ok&&zr.connected)){
@@ -1943,8 +2007,8 @@ async function beginCoordinatedStashLibraryUpdate(){
     // Stage/open Windows installer. If it was not already staged, download it now;
     // Firefox may require the user to click the downloaded installer because the
     // downloads.open privilege only survives the original user gesture.
-    if(stashlibraryStagedWindowsDownloadId==null){
-      const staged=await stageWindowsUpdateIfNeeded(release);
+    if(componentState.windows&&stashlibraryStagedWindowsDownloadId==null){
+      const staged=await stageWindowsUpdateIfNeeded(release,{hostVersion:installed.windows});
       if(staged==null)throw new Error('The Windows update could not be staged.');
       if(summary)summary.textContent=`Version ${release.version}: Windows installer downloaded. Open it from Firefox Downloads to continue.`;
     }
