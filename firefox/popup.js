@@ -368,7 +368,7 @@ async function showZoteroPluginReinstallPrompt(){
 }
 async function checkExistingInstallationComponents(){
   let info=null;
-  try{info=await send({cmd:'backup_info'});}catch(_){ }
+  try{info=await Promise.race([send({cmd:'backup_info'}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Helper check timed out')),5000))]);}catch(_){ }
   const helperVersion=String(info?.hostVersion||'').trim();
   const helperPresent=!!(info?.ok&&helperVersion);
   const helperCompatible=!!(helperPresent && Number(info?.protocolVersion||0)===STASHLIBRARY_PROTOCOL_VERSION && helperVersion===REQUIRED_WINDOWS_HELPER_VERSION);
@@ -376,16 +376,18 @@ async function checkExistingInstallationComponents(){
     await showHelperReinstallPrompt();
     return {helper:false,zotero:null};
   }
+  return {helper:true,zotero:null};
+}
+
+async function checkZoteroComponentAfterStartup(){
   let zr=null;
-  try{zr=await send({cmd:'zotero_status'});}catch(_){ }
-  // Warn only with positive evidence that Zotero itself is running/reachable.
+  try{zr=await send({cmd:'zotero_status'});}catch(_){return}
+  // Zotero is optional while closed. If it is running, require its companion
+  // to match, but perform this slower loopback probe only after the library is
+  // already usable and visible.
   const zoteroRunning=!!zr?.zoteroReachable;
-  // `connected` is the compatibility-aware signal. An older plugin may still
-  // report a version string, but if it cannot connect to this StashLibrary build it
-  // should be repaired just like a missing plugin — never sent back to Setup.
   const pluginDetected=!!zr?.connected;
   if(zoteroRunning&&!pluginDetected)await showZoteroPluginReinstallPrompt();
-  return {helper:true,zotero:zoteroRunning?pluginDetected:null};
 }
 
 async function init(){
@@ -409,6 +411,7 @@ async function init(){
     return;
   }
   await refreshTree('startup');
+  setTimeout(()=>checkZoteroComponentAfterStartup().catch(()=>{}),0);
 }
 function applyTheme(t){
   if(!['system','light','dark'].includes(t)) t='system';
@@ -1607,30 +1610,10 @@ async function maybeShowOnboarding({startup=false}={}){
       return true;
     }
 
-    let zr=null;
-    try{zr=await send({cmd:'zotero_status'});}catch(_){}
-    const zoteroVersion=String(zr?.helperVersion||'').trim();
-    const zoteroConnected=!!zr?.connected;
-    const zoteroIncompatible=!!zoteroVersion&&!zoteroConnected;
-
-    // If Zotero is running and we can positively see that the StashLibrary endpoint
-    // is absent, or an installed helper answers with an incompatible protocol,
-    // route completed installations directly to setup page 6. If Zotero is
-    // merely closed, do not mistake that for an uninstalled helper.
-    const zoteroDefinitelyMissing=!!(zr?.zoteroReachable && !zoteroConnected && !zoteroVersion);
-    // Only route to the Zotero-helper repair page when StashLibrary has positive
-    // evidence that repair is actually needed. Zotero simply being closed is
-    // a normal state and must never look like a missing-helper problem.
-    if(zoteroIncompatible || zoteroDefinitelyMissing){
-      await openOnboarding({initialInfo:info,requireZotero:true,startSlide:null,currentSlide:null});
-      return true;
-    }
-
-    // Reinstalling the Firefox extension should not force setup again when both
-    // companion components are already present and compatible.
-    if(!setupComplete && zoteroConnected && zoteroVersion){
-      browser.storage.local.set({[STASHLIBRARY_ONBOARDING_KEY]:true}).catch(()=>{});
-    }
+    // A compatible helper with no resume marker means this is an existing
+    // installation (commonly an XPI reinstall). Do not hold the library behind
+    // a slow Zotero loopback probe; startup checks Zotero after rendering.
+    browser.storage.local.set({[STASHLIBRARY_ONBOARDING_KEY]:true}).catch(()=>{});
     return false;
   }catch(_){return false}
 }
@@ -5385,7 +5368,10 @@ document.querySelector('#uninstallFirefoxExtensionBtn')?.addEventListener('click
 });
 
 
-init();
+init().catch(error=>{
+  errorStatus(error);
+  if(root)root.innerHTML='<div class="empty">StashLibrary could not finish starting. Close and reopen the popup; if the problem continues, reinstall the current StashLibrary release.</div>';
+});
 
 
 async function openSupportLink(url,label){
