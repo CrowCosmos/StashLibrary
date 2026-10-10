@@ -286,6 +286,7 @@ async function downloadLatestWindowsHelperInstaller(){
   const url=String(release?.windows_setup_url||'').trim();
   if(!/^https:\/\//i.test(url))throw new Error('The release does not provide a secure Windows helper download.');
   const version=String(release?.windows_helper_version||release?.component_version||release?.version||'').trim();
+  try{await browser.runtime.sendMessage({type:'native-pause'});}catch(_){ }
   const reply=await browser.runtime.sendMessage({type:'stashlibrary-stage-windows-update',url,version});
   if(!reply?.ok||!Number.isInteger(reply.downloadId))throw new Error(reply?.error||'Firefox could not download the Windows helper.');
   stashlibraryStagedWindowsDownloadId=reply.downloadId;
@@ -342,7 +343,12 @@ async function showHelperReinstallPrompt(){
     confirmLabel:'Install StashLibrary Helper',
     onConfirm:downloadLatestWindowsHelperInstaller,
     checkReady:async()=>{
-      const info=await send({cmd:'backup_info'});
+      // The installer switches Firefox's native-host registry entry while the
+      // previous helper connection may still be alive. Force a fresh native
+      // connection so this mandatory dialog observes the newly installed host
+      // and closes itself as soon as its version is compatible.
+      const probe=await browser.runtime.sendMessage({type:'native-probe',timeout:5000});
+      const info=probe?.info;
       const version=String(info?.hostVersion||'').trim();
       return !!(info?.ok && version===REQUIRED_WINDOWS_HELPER_VERSION && Number(info?.protocolVersion||0)===STASHLIBRARY_PROTOCOL_VERSION);
     }
