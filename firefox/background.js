@@ -649,6 +649,10 @@ async function directSendCurrentToZotero(msg={}){
 const STASHLIBRARY_THUMBNAIL_KEY='stashlibraryBookmarkThumbnails';
 const STASHLIBRARY_FAVICON_JOB_KEY='stashlibraryFaviconRefreshJob';
 let faviconBatchRunning=false;
+// Avoid hammering sites that do not expose a favicon. Automatic discovery gets
+// one attempt per bookmark during this background-page lifetime; the manual
+// Refresh Favicons action can still force a fresh check whenever requested.
+const automaticallyAttemptedFaviconKeys=new Set();
 
 async function publishFaviconProgress(payload){
   const state={...payload,updatedAt:Date.now()};
@@ -773,12 +777,17 @@ async function generateFaviconBatch(items=[],force=false){
   faviconBatchRunning=true;
   try{
     const cache=await readThumbnailCache();
-    const jobs=(items||[]).filter(x=>x?.path&&(force||!cache[x.key||x.path]));
+    const jobs=(items||[]).filter(x=>{
+      if(!x?.path)return false;
+      const key=x.key||x.path;
+      return force || (!cache[key]&&!automaticallyAttemptedFaviconKeys.has(key));
+    });
     let done=0,updated=0,unchanged=0,kept=0,missing=0;
     await publishFaviconProgress({running:true,done,total:jobs.length,updated,unchanged,kept,missing,finished:false});
 
     for(const item of jobs){
       const key=item.key||item.path;
+      if(!force)automaticallyAttemptedFaviconKeys.add(key);
       const previous=cache[key]||'';
       try{
         const image=await faviconFromPageURL(item.sourceUrl||'');
@@ -877,6 +886,11 @@ async function triggerZoteroStashLibraryUpdate(expectedVersion){
     const text=await response.text();
     let data={};try{data=JSON.parse(text);}catch(_){data={ok:false,error:text||`Zotero returned ${response.status}`};}
     if(!response.ok||!data.ok)return {ok:false,error:data.error||`Zotero returned ${response.status}`};
+    const expected=String(expectedVersion||'').trim();
+    const actual=String(data.version||'').trim();
+    if(expected && actual!==expected){
+      return {ok:false,error:`Zotero finished its update check but is still running StashLibrary Zotero Helper ${actual||'unknown'}; version ${expected} is required.`};
+    }
     return data;
   }catch(e){return {ok:false,error:e?.name==='AbortError'?'Zotero update request timed out.':(e?.message||String(e))};}
   finally{clearTimeout(timer);}

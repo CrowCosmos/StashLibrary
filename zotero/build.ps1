@@ -3,6 +3,15 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Repo = Split-Path -Parent $Root
 $Dist = Join-Path $Repo 'dist'
+$Manifest = Join-Path $Root 'manifest.json'
+
+# Keep the version visible in Zotero's Add-ons Manager without allowing the
+# display name and package version to drift apart between releases.
+$Metadata = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
+$ExpectedName = "StashLibrary Zotero Helper v$($Metadata.version)"
+if ($Metadata.name -ne $ExpectedName) {
+    throw "Zotero add-on name must be '$ExpectedName' so its visible title matches its package version."
+}
 
 $Zip = Join-Path $Dist 'StashLibrary-Zotero-Helper.zip'
 $Xpi = Join-Path $Dist 'StashLibrary-Zotero-Helper.xpi'

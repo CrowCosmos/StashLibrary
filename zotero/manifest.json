@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "StashLibrary Zotero Helper",
+  "name": "StashLibrary Zotero Helper v0.1.1",
   "version": "0.1.1",
   "description": "Zotero companion for StashLibrary.",
   "author": "StashLibrary",

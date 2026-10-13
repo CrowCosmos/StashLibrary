@@ -218,6 +218,7 @@ async function refreshHistoryState(state=null){
 
 const STASHLIBRARY_THUMBNAIL_KEY='stashlibraryBookmarkThumbnails';
 let bookmarkThumbnailCache={};
+let automaticFaviconTimer=null;
 
 async function loadBookmarkThumbnailCache(){
   try{
@@ -266,6 +267,22 @@ function allBookmarkThumbnailJobs(){
       name:n.name||'',
       sourceUrl:n.sourceUrl||''
     }));
+}
+function scheduleAutomaticFaviconGeneration(){
+  clearTimeout(automaticFaviconTimer);
+  automaticFaviconTimer=setTimeout(async()=>{
+    automaticFaviconTimer=null;
+    const items=allBookmarkThumbnailJobs().filter(item=>!bookmarkThumbnailCache[item.key]);
+    if(!items.length)return;
+    try{
+      const r=await browser.runtime.sendMessage({type:'thumbnail-start-batch',items,force:false});
+      // A manual refresh may already own the worker. Retry quietly once it has
+      // had time to finish so newly-added bookmarks are not missed.
+      if(!r?.ok && /already running/i.test(String(r?.error||''))){
+        automaticFaviconTimer=setTimeout(scheduleAutomaticFaviconGeneration,15000);
+      }
+    }catch(_){ }
+  },750);
 }
 async function runThumbnailGeneration(){
   const s=document.querySelector('#thumbnailGenerationStatus'),items=allBookmarkThumbnailJobs();
@@ -480,6 +497,7 @@ async function refreshTree(reason='manual'){
       tree=r.tree;
       selectedPaths=new Set([...selectedPaths].filter(p=>findNodeByPath(p,tree)));
       renderRoot();
+      scheduleAutomaticFaviconGeneration();
       const welcome=document.querySelector('#welcome');
       const configured=!!r.root;
       welcome.hidden=configured;
@@ -1364,6 +1382,7 @@ function applyOnboardingPrefetchedTree(reason='onboarding'){
   lastTreeSignature=treeSignature(tree);
   selectedPaths=new Set([...selectedPaths].filter(p=>findNodeByPath(p,tree)));
   renderRoot();
+  scheduleAutomaticFaviconGeneration();
   const welcome=document.querySelector('#welcome');
   const configured=!!r.root;
   if(welcome)welcome.hidden=configured;
