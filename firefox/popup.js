@@ -434,6 +434,7 @@ async function init(){
     return;
   }
   await refreshTree('startup');
+  scheduleBackgroundRefresh();
   setTimeout(()=>checkZoteroComponentAfterStartup().catch(()=>{}),0);
 }
 function applyTheme(t){
@@ -447,7 +448,7 @@ function treeSignature(node){
   const rows=[];
   const walk=n=>{
     for(const c of (n?.children||[])){
-      rows.push(`${c.type}|${c.path}|${c.name}|${c.sourceUrl||''}|${c.accessedAt||''}`);
+      rows.push(`${c.type}|${c.path}|${c.name}|${c.physicalName||''}|${c.sourceUrl||''}|${c.accessedAt||''}`);
       if(c.type==='folder')walk(c);
     }
   };
@@ -516,7 +517,9 @@ async function refreshTree(reason='manual'){
       if(reason==='startup'||reason==='manual') finishOperation('');
     }catch(e){
       if(isBackground){
-        debugRecord('background-refresh-error',{error:String(e?.message||e)});
+        const message=String(e?.message||e);
+        debugRecord('background-refresh-error',{error:message});
+        if(!operationActive)status(`Library refresh failed — ${message}`,{hold:5000});
         return;
       }
       // The helper can disappear while StashLibrary is already open (manual
@@ -546,6 +549,11 @@ async function refreshTree(reason='manual'){
     // on stale status counts until a manual refresh.
     if(backgroundRefreshPending && !refreshTimer && !operationActive){
       scheduleBackgroundRefresh(250);
+    }else if(isBackground && !refreshTimer && !operationActive){
+      // Keep a low-frequency safety poll running while the popup is open. The
+      // native watcher can miss filesystem changes when the configured folder
+      // is renamed or replaced outside StashLibrary.
+      scheduleBackgroundRefresh();
     }
   }
 }
