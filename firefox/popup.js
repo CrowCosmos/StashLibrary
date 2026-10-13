@@ -152,15 +152,18 @@ async function withHistoryGroup(label,fn){
 
 function friendlyStatusText(text,busy=false){
   const raw=String(text??'').trim();
-  if(/checking stashlibrary helper|connecting to local helper|^starting\b|stashlibrary helper (?:is )?compatible/i.test(raw))return 'Loading…';
+  if(/checking stashlibrary helper|connecting to local helper|^starting\b|stashlibrary helper (?:is )?compatible|reading bookmarks|loading (?:sqlite )?catalogue/i.test(raw))return 'Loading';
   if(/stashlibrary helper not detected/i.test(raw))return 'Setup required';
   if(/^Ready\b/i.test(raw))return '';
-  if(busy){const label=raw.split(/\s+—\s+/)[0].trim();return /\d+(?:\.\d+)?%$/.test(label)?label:`${label||'Working'}…`}
+  if(busy){
+    const label=raw.split(/\s+—\s+/)[0].trim().replace(/[.…]+$/,'');
+    return label||'Working';
+  }
   return raw.replace(/\s+—\s+\d+(?:\.\d+)?s$/,'');
 }
 function hideActivity(){clearTimeout(activityTimer);activityTimer=null;const panel=document.querySelector('#activityPanel');if(panel)panel.hidden=true}
 function showActivity(title,detail=''){
-  const update=()=>{const panel=document.querySelector('#activityPanel');if(!panel)return;document.querySelector('#activityTitle').textContent=String(title||'Working').replace(/…?$/,'…');const d=document.querySelector('#activityDetail');const friendlyDetail=/[a-z]:[\\/]/i.test(String(detail||''))?'Working with your StashLibrary library':String(detail||'');d.textContent=friendlyDetail;d.hidden=!friendlyDetail;panel.hidden=false};
+  const update=()=>{const panel=document.querySelector('#activityPanel');if(!panel)return;document.querySelector('#activityTitle').textContent=String(title||'Working').replace(/[.…]+$/,'');const d=document.querySelector('#activityDetail');const friendlyDetail=/[a-z]:[\\/]/i.test(String(detail||''))?'Working with your StashLibrary library':String(detail||'');d.textContent=friendlyDetail;d.hidden=!friendlyDetail;panel.hidden=false};
   const panel=document.querySelector('#activityPanel');
   if(panel&&!panel.hidden){update();return}
   if(activityTimer)return;
@@ -172,7 +175,7 @@ function status(text,{hold=0,busy=false}={}){
   const visible=friendlyStatusText(text,busy);
   statusEl.textContent=visible;
   statusEl.classList.toggle('busy',!!busy);
-  statusEl.title=text;
+  statusEl.title=visible;
   debugRecord('status',{text,visible,busy:!!busy});
   if(hold){
     statusHoldUntil=Date.now()+hold;
@@ -2139,13 +2142,12 @@ document.querySelector('#updateStashLibraryBtn')?.addEventListener('click',e=>{
 });
 
 
-document.addEventListener('contextmenu',e=>{if(e.target.closest('#settingsPanel,#settingsBtn'))return;const t=contextTarget(e);if(!t)return;e.preventDefault();e.stopPropagation();if(t.node&&!selectedPaths.has(t.node.path)&&selectedPaths.size)clearSelection({quiet:true});showCtx(e.clientX,e.clientY,t.node,t.folder);clearKeyboardCurrent(ctx)});
+document.addEventListener('contextmenu',e=>{if(e.target.closest('#settingsPanel,#settingsBtn'))return;if(!settingsPanel.hidden)closeSettings();const t=contextTarget(e);if(!t)return;e.preventDefault();e.stopPropagation();if(t.node&&!selectedPaths.has(t.node.path)&&selectedPaths.size)clearSelection({quiet:true});showCtx(e.clientX,e.clientY,t.node,t.folder);clearKeyboardCurrent(ctx)});
 document.addEventListener('dragend',clearDropMarks,true);document.addEventListener('drop',()=>setTimeout(clearDropMarks,0),true);
 document.body.addEventListener('mousedown',e=>{
-  // Settings is deliberately not a modal: clicking the gear toggles it, and
-  // clicking genuinely empty bookmark-area space closes it. Bookmark/folder
-  // interactions themselves do not count as click-off.
-  if(!settingsPanel.hidden && e.target.closest('#root') && !e.target.closest('.item,.flyout,.ctx'))closeSettings();
+  // Settings is not modal: any interaction with the workspace dismisses it.
+  // Keep it open only for clicks within the panel or on its gear toggle.
+  if(!settingsPanel.hidden && !e.target.closest('#settingsPanel,#settingsBtn'))closeSettings();
   if(!e.target.closest('.item,.flyout,#settingsPanel,#settingsBtn,.ctx,#zoteroDestinationModal,#stashlibraryDestinationModal')){collapseAll();if(!e.ctrlKey&&!e.metaKey)clearSelection({quiet:true})}
   if(!e.target.closest('.ctx'))ctx.hidden=true
 });
@@ -4838,8 +4840,12 @@ browser.runtime.onMessage.addListener(m=>{
    if(silentNativeProgress>0)return;
    const pct=Number.isFinite(p.percent)?` ${Math.round(p.percent)}%`:'';
    const elapsed=p.elapsed!=null?` — ${Number(p.elapsed).toFixed(1)}s`:'';
-   status(`${p.operation||'Working'}${pct}`,{busy:true});
-   if(operationActive)showActivity(`${p.operation||operationLabel||'Working'}${pct}`,p.detail||p.stage||'');
+   const friendlyOperation=friendlyStatusText(p.operation||operationLabel||'Working',true);
+   status(`${friendlyOperation}${pct}`,{busy:true});
+   if(operationActive){
+     const catalogueRead=/reading bookmarks|sqlite catalogue/i.test(`${p.operation||''} ${p.detail||''} ${p.stage||''}`);
+     showActivity(`${friendlyOperation}${pct}`,catalogueRead?'':(p.detail||p.stage||''));
+   }
  }else if(p.event==='changed'){
    // The native watcher may emit noisy/repeated notifications. Do not debounce
    // forever and do not redraw every 500 ms: schedule at most one quiet check
