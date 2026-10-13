@@ -84,7 +84,7 @@
   "commands": {
     "toggle-stashlibrary": {
       "suggested_key": {
-        "default": "Ctrl+Shift+L"
+        "default": "Alt+Shift+S"
       },
       "description": "Open or close StashLibrary"
     }

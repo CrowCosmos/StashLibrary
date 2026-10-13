@@ -7,6 +7,7 @@ let selectedPaths=new Set();
 let selectionAnchorPath=null;
 let keyboardTreePath='';
 let statusHoldUntil=0, operationStarted=0, operationLabel='';
+let statusClearTimer=null;
 let operationActive=false, backgroundRefreshPending=false, refreshInFlight=null, silentNativeProgress=0;
 let activityTimer=null;
 let manualBackupActive=false;
@@ -153,9 +154,7 @@ function friendlyStatusText(text,busy=false){
   const raw=String(text??'').trim();
   if(/checking stashlibrary helper|connecting to local helper|^starting\b|stashlibrary helper (?:is )?compatible/i.test(raw))return 'Loading…';
   if(/stashlibrary helper not detected/i.test(raw))return 'Setup required';
-  const ready=raw.match(/^Ready\s*[—-]\s*(\d+)\s+items?/i);
-  if(ready)return `Ready — ${ready[1]} item${ready[1]==='1'?'':'s'}`;
-  if(/^Ready\b/i.test(raw))return 'Ready';
+  if(/^Ready\b/i.test(raw))return '';
   if(busy){const label=raw.split(/\s+—\s+/)[0].trim();return /\d+(?:\.\d+)?%$/.test(label)?label:`${label||'Working'}…`}
   return raw.replace(/\s+—\s+\d+(?:\.\d+)?s$/,'');
 }
@@ -168,14 +167,21 @@ function showActivity(title,detail=''){
   activityTimer=setTimeout(()=>{activityTimer=null;if(operationActive)update()},450);
 }
 function status(text,{hold=0,busy=false}={}){
+  clearTimeout(statusClearTimer);statusClearTimer=null;
   text=String(text??'');
   const visible=friendlyStatusText(text,busy);
-  const isReady=/^Ready(?:\b|\s|—|-)/i.test(visible.trim());
   statusEl.textContent=visible;
-  statusEl.classList.toggle('busy',!!busy&&!isReady);
+  statusEl.classList.toggle('busy',!!busy);
   statusEl.title=text;
   debugRecord('status',{text,visible,busy:!!busy});
-  if(hold) statusHoldUntil=Date.now()+hold;
+  if(hold){
+    statusHoldUntil=Date.now()+hold;
+    const shown=visible;
+    statusClearTimer=setTimeout(()=>{
+      statusClearTimer=null;
+      if(!operationActive&&statusEl.textContent===shown){statusEl.textContent='';statusEl.title='';statusEl.classList.remove('busy')}
+    },hold);
+  }
 }
 function beginOperation(label,detail=''){
   operationStarted=Date.now(); operationLabel=label; operationActive=true;
@@ -190,7 +196,7 @@ function _releaseOperationLock(){
 function finishOperation(text){
   const secs=operationStarted?((Date.now()-operationStarted)/1000).toFixed(1):null;
   operationStarted=0; operationLabel='';
-  status(`${text}${secs?` — ${secs}s`:''}`,{hold:1800});
+  status(text?`${text}${secs?` — ${secs}s`:''}`:'',{hold:text?1800:0});
   _releaseOperationLock();
 }
 function errorStatus(e){
@@ -504,11 +510,10 @@ async function refreshTree(reason='manual'){
       document.querySelector('#settingsBtn').classList.toggle('attention',!configured);
       if(reopenPaths.length) restoreOpenFolders(reopenPaths);
       refreshHistoryState().catch(()=>{});
-      const count=countNodes(tree);
+      const count=updateSettingsLibraryItemCount();
       debugRecord(isBackground?'background-refresh':'tree-refresh',{changed:true,reason,count});
 
-      if(reason==='startup'||reason==='manual') finishOperation(`Ready — ${count} item${count===1?'':'s'}`);
-      else if(!isBackground&&Date.now()>statusHoldUntil) status(`Ready — ${count} item${count===1?'':'s'}`);
+      if(reason==='startup'||reason==='manual') finishOperation('');
     }catch(e){
       if(isBackground){
         debugRecord('background-refresh-error',{error:String(e?.message||e)});
@@ -537,8 +542,13 @@ async function refreshTree(reason='manual'){
 }
 
 function countNodes(node){
-  // The main status bar reports saved StashLibrary items, not organisational folders.
   return (node?.children||[]).reduce((n,c)=>n+(c.type==='bookmark'?1:0)+(c.type==='folder'?countNodes(c):0),0)
+}
+function updateSettingsLibraryItemCount(){
+  const count=countNodes(tree);
+  const el=document.querySelector('#settingsLibraryItemCount');
+  if(el)el.textContent=`You have ${count} bookmarked item${count===1?'':'s'} in StashLibrary.`;
+  return count;
 }
 function selectedNodes(){return [...selectedPaths].map(p=>findNodeByPath(p,tree)).filter(Boolean)}
 function topLevelSelectedNodes(){
@@ -804,7 +814,7 @@ function makeItem(n,depth,parentPath){
     try{e.dataTransfer.setData('text/plain',n.path)}catch{}
     status(dragState.multi?`Dragging ${dragState.paths.length} selected items — drop in the centre of a folder to move them together`:`Dragging “${n.name}” — drop above/below to reorder, or centre of a folder to move inside`,{busy:true});
   });
-  el.addEventListener('dragend',()=>{clearTimeout(dragHoverTimer);dragHoverTimer=null;dragHoverPath=null;document.querySelectorAll('.item.dragging').forEach(x=>x.classList.remove('dragging'));clearDropMarks();dragState=null;if(Date.now()>statusHoldUntil)status('Ready')});
+  el.addEventListener('dragend',()=>{clearTimeout(dragHoverTimer);dragHoverTimer=null;dragHoverPath=null;document.querySelectorAll('.item.dragging').forEach(x=>x.classList.remove('dragging'));clearDropMarks();dragState=null;if(Date.now()>statusHoldUntil)status('')});
   el.addEventListener('dragover',e=>{
     if(!dragState||dragState.path===n.path)return;
     e.preventDefault();e.stopPropagation();clearDropMarks();
@@ -1240,7 +1250,7 @@ async function doAction(a,n,folder,chosen=null){ctx.hidden=true;try{
    clearSelection({quiet:true});
    await refreshTree('change');
    if(last)await refreshHistoryState(last);
-   finishOperation(`Deleted ${use.length} item${use.length===1?'':'s'} — Undo available`);
+   finishOperation(`Deleted ${use.length} item${use.length===1?'':'s'}`);
  }
  await refreshHistoryState();
  }catch(e){errorStatus(e);try{await refreshHistoryState()}catch{}}}
@@ -1383,6 +1393,7 @@ function applyOnboardingPrefetchedTree(reason='onboarding'){
   selectedPaths=new Set([...selectedPaths].filter(p=>findNodeByPath(p,tree)));
   renderRoot();
   scheduleAutomaticFaviconGeneration();
+  updateSettingsLibraryItemCount();
   const welcome=document.querySelector('#welcome');
   const configured=!!r.root;
   if(welcome)welcome.hidden=configured;
