@@ -538,7 +538,16 @@ async function refreshTree(reason='manual'){
 
   refreshInFlight=run;
   try{return await run}
-  finally{if(refreshInFlight===run)refreshInFlight=null}
+  finally{
+    if(refreshInFlight===run)refreshInFlight=null;
+    // A background refresh can be requested while another tree read is already
+    // in flight, and the first read may legitimately finish without seeing the
+    // latest external change. Re-arm the quiet poll so the popup does not stay
+    // on stale status counts until a manual refresh.
+    if(backgroundRefreshPending && !refreshTimer && !operationActive){
+      scheduleBackgroundRefresh(250);
+    }
+  }
 }
 
 function countNodes(node){
